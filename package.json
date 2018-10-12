@@ -6,12 +6,17 @@
   "repository": "git@github.com:magus/d20.git",
   "author": "noah <noah@iamnoah.com>",
   "license": "MIT",
-
   "scripts": {
-    "start": "micro"
-  },
+    "micro": "micro",
 
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
-    "micro": "latest"
+    "micro": "latest",
+    "next": "^7.0.2",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2"
   }
 }
