@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
     case '/party':
       return `100k d20s...\n${JSON.stringify(d20party(), null, 2)}`;
     default:
-      return rolld20();
+      return `deploytest: ${rolld20()}`;
   }
 }
 
