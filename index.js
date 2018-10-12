@@ -3,12 +3,12 @@ console.info('d20-server');
 module.exports = () => rolld20();
 
 module.exports = async (req, res) => {
-  const { path } = req;
+  const { url } = req;
 
-  console.log({ path });
+  console.log({ url });
 
-  switch(path) {
-    case 'party':
+  switch(url) {
+    case '/party':
       return `100k d20s...\n${JSON.stringify(d20party(), null, 2)}`;
     default:
       return rolld20();
