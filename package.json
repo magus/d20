@@ -1,0 +1,17 @@
+{
+  "name": "d20",
+  "version": "0.0.1",
+  "description": "roll a d20",
+  "main": "index.js",
+  "repository": "git@github.com:magus/d20.git",
+  "author": "noah <noah@iamnoah.com>",
+  "license": "MIT",
+
+  "scripts": {
+    "start": "micro"
+  },
+
+  "dependencies": {
+    "micro": "latest"
+  }
+}
