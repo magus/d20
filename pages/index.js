@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 
-import SocketContext, { SocketContextProvider } from '~/app/components/SocketContext';
+import SocketContext, { SocketContextProvider } from '~/app/components/context/SocketContext';
 import { ROLL } from '~/server/socket/Events';
 import rolld20 from '~/app/utils/rolld20';
 
