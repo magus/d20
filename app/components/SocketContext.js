@@ -15,6 +15,8 @@ export class SocketContextProvider extends React.Component {
   }
 
   render() {
+    if (!this.state.socket) return null;
+
     // Use a Provider to pass the current theme to the tree below.
     // Any component can read it, no matter how deep it is.
     return (

@@ -1,4 +1,4 @@
-import rolld20 from '~/utils/rolld20';
+import rolld20 from '~/app/utils/rolld20';
 
 function d20party() {
   const results = {};
