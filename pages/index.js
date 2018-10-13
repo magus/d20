@@ -1,10 +1,15 @@
+// @flow
 import React from 'react';
 
 import SocketContext, { SocketContextProvider } from '~/app/components/SocketContext';
 import { ROLL } from '~/server/socket/Events';
 import rolld20 from '~/app/utils/rolld20';
 
-class Index extends React.Component {
+type Props = {
+  socket: any,
+};
+
+class Index extends React.Component<Props> {
   componentDidMount() {
     console.info('mounted', { ...this.props });
 
