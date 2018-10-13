@@ -1,7 +1,7 @@
 import React from 'react';
 
 import SocketContext, { SocketContextProvider } from '~/app/components/SocketContext';
-import { ROLL } from '~/app/constants/Events';
+import { ROLL } from '~/server/socket/Events';
 import rolld20 from '~/app/utils/rolld20';
 
 class Index extends React.Component {

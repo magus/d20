@@ -6,7 +6,7 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 
-const setupSocket = require('./setupSocket');
+const socketSetup = require('./socket/setup');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -27,6 +27,6 @@ app.prepare().then(() => {
 
     console.log('> Ready on http://localhost:3000');
 
-    setupSocket(server);
+    socketSetup(server);
   });
 });
