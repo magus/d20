@@ -2,15 +2,22 @@
 // Make sure the syntax and sources this file requires are compatible with the current node version you are running
 // See https://github.com/zeit/next.js/issues/1245 for discussions on Universal Webpack or universal Babel
 // https://nextjs.org/docs/#custom-server-and-routing
-const { createServer } = require('http');
+const { createServer, get } = require('http');
 const { parse } = require('url');
 const next = require('next');
 
 const socketSetup = require('./socket/setup');
+const ServerConfig = require('./constants/ServerConfig');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
+
+// Ping self every 2 minutes
+setInterval(() => {
+  console.info('Pinging localhost to keep server warm...');
+  get('http://localhost:3000');
+}, 1000 * 60 * 2);
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
