@@ -26,7 +26,7 @@ class Index extends React.Component<Props> {
 
   render() {
     return (
-      <p>{roll()}</p>
+      <Result>{roll()}</Result>
     );
   }
 }
@@ -46,7 +46,12 @@ export default () => (
 );
 
 const Header = styled.h1`
-    font-size: 24px;
-    font-weight: 400;
-    margin-bottom: 10px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 10px;
 `;
+
+const Result = styled.p`
+  font-size: 16px;
+`
