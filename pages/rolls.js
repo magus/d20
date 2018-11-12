@@ -7,11 +7,15 @@ import styled from "styled-components";
 import SocketContext, {
   SocketContextProvider
 } from "~/app/components/context/SocketContext";
+
+import ConnectedUser from "~/app/components/ConnectedUser";
 import Page from "~/app/components/Page";
 import Users from "~/app/components/Users";
+
 import { USERS, ROLL } from "~/server/socket/Events";
 
 import roll from "~/app/utils/roll";
+import { userFromId } from '~/app/types';
 
 type Props = {
   socket: any
@@ -53,9 +57,13 @@ class WithSocketInfo extends React.Component<Props, State> {
   }
 
   render() {
+    const userId = this.props.socket.id;
+
     return (
       <Page>
         <Header>d20</Header>
+        <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
+
         <Result>
           <Users users={this.state.users} />
 

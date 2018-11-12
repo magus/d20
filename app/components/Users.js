@@ -1,5 +1,6 @@
 // @flow
 import type { ActiveUsers } from "~/app/types";
+import { userFromId } from '~/app/types';
 
 import React from "react";
 import styled from "styled-components";
@@ -18,7 +19,7 @@ export default ({ title = "Users", users }: { title?: string, users: ActiveUsers
       </h2>
 
       {userIds.map(userId => {
-        const identity = users[userId] || { name: userId.slice(0, 4) };
+        const identity = users[userId] || userFromId(userId);
 
         return <User key={userId} name={identity.name} />;
       })}
