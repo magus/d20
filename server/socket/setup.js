@@ -6,8 +6,8 @@ module.exports = server => {
   io.on("connection", socket => {
     console.log("user connected");
 
-    socket.on(Events.ROLL, value => {
-      io.emit(Events.ROLL, { value });
+    socket.on(Events.ROLL, msg => {
+      io.emit(Events.ROLL, msg);
     });
 
     socket.on("disconnect", () => {

@@ -1,4 +1,6 @@
 // @flow
+import type { RollEvent } from "~/app/types";
+
 import React from "react";
 import styled from "styled-components";
 
@@ -7,6 +9,7 @@ import SocketContext, {
 } from "~/app/components/context/SocketContext";
 import Page from "~/app/components/Page";
 import { ROLL } from "~/server/socket/Events";
+
 import roll from "~/app/utils/roll";
 
 type Props = {
@@ -14,11 +17,11 @@ type Props = {
 };
 
 type State = {
-  rolls: number[]
+  rolls: RollEvent[]
 };
 
-const handleRoll = (msg: any) => (state: State) => ({
-  rolls: state.rolls.concat(msg.value)
+const handleRoll = (msg: RollEvent) => (state: State) => ({
+  rolls: state.rolls.concat(msg)
 });
 
 class WithSocketInfo extends React.Component<Props, State> {
@@ -31,7 +34,7 @@ class WithSocketInfo extends React.Component<Props, State> {
       rolls: []
     };
 
-    this._emitRoll = () => this.props.socket.emit(ROLL, roll());
+    this._emitRoll = () => this.props.socket.emit(ROLL, { user: 'UserA', roll: roll() });
   }
 
   componentDidMount() {
@@ -41,7 +44,7 @@ class WithSocketInfo extends React.Component<Props, State> {
   render() {
     return (
       <Result>
-        <pre>{JSON.stringify(this.state.rolls)}</pre>
+        <pre>{JSON.stringify(this.state.rolls, null, 2)}</pre>
         <button onClick={this._emitRoll}>Roll</button>
       </Result>
     );

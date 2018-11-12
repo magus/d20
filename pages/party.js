@@ -7,7 +7,7 @@ function d20party() {
   const results = {};
 
   for (let i = 0; i < 100000; i++) {
-    const result = roll();
+    const result = roll().result;
 
     // ensure result is initialized
     if (typeof results[result] === 'undefined') results[result] = 0;
