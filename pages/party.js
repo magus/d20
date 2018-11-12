@@ -1,10 +1,13 @@
-import rolld20 from '~/app/utils/rolld20';
+// @flow
+import React from 'react';
+
+import roll from '~/app/utils/roll';
 
 function d20party() {
   const results = {};
 
   for (let i = 0; i < 100000; i++) {
-    const result = rolld20();
+    const result = roll();
 
     // ensure result is initialized
     if (typeof results[result] === 'undefined') results[result] = 0;

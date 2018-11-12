@@ -3,7 +3,7 @@ import React from 'react';
 
 import SocketContext, { SocketContextProvider } from '~/app/components/context/SocketContext';
 import { ROLL } from '~/server/socket/Events';
-import rolld20 from '~/app/utils/rolld20';
+import roll from '~/app/utils/roll';
 
 type Props = {
   socket: any,
@@ -15,7 +15,7 @@ class Index extends React.Component<Props> {
 
     const { socket } = this.props;
 
-    socket.emit(ROLL, rolld20());
+    socket.emit(ROLL, roll());
 
     socket.on(ROLL, msg => {
       console.info(ROLL, msg);
@@ -24,7 +24,7 @@ class Index extends React.Component<Props> {
 
   render() {
     return (
-      <p>{rolld20()}</p>
+      <p>{roll()}</p>
     )
   }
 }
