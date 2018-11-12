@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import styled from 'styled-components';
 
 import SocketContext, { SocketContextProvider } from '~/app/components/context/SocketContext';
 import Page from '~/app/components/Page';
@@ -26,12 +27,14 @@ class Index extends React.Component<Props> {
   render() {
     return (
       <p>{roll()}</p>
-    )
+    );
   }
 }
 
 export default () => (
   <Page>
+    <Header>d20</Header>
+
     <SocketContextProvider>
       <SocketContext>
         {
@@ -41,3 +44,5 @@ export default () => (
     </SocketContextProvider>
   </Page>
 );
+
+const Header = styled.h1``;

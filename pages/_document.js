@@ -5,30 +5,24 @@ import { ServerStyleSheet } from 'styled-components'
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx) {
-    // const sheet = new ServerStyleSheet();
+    const sheet = new ServerStyleSheet();
 
-    // const originalRenderPage = ctx.renderPage;
-    // ctx.renderPage = () => originalRenderPage({
-    //   enhanceApp: App => props => sheet.collectStyles(<App {...props} />)
-    // });
+    const originalRenderPage = ctx.renderPage;
+    ctx.renderPage = () => originalRenderPage({
+      enhanceApp: App => props => sheet.collectStyles(<App {...props} />)
+    });
 
     const initialProps = await Document.getInitialProps(ctx);
-    return { ...initialProps };
+    return { ...initialProps, styles: [...initialProps.styles, ...sheet.getStyleElement()] };
   }
 
   render() {
     return (
       <html>
         <Head>
-          {/* <meta httpEquiv="Content-Security-Policy" content={`
-            default-src 'self';
-            connect-src 'self' ws://localhost:3000/socket.io;
-            style-src 'unsafe-inline';
-            script-src 'unsafe-eval' 'unsafe-inline' 'self' https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js;
-          `} />
           <meta httpEquiv="Referrer-Policy" content="no-referrer" />
           <meta name="referrer" content="no-referrer" />
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3.0, minimum-scale=1" /> */}
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3.0, minimum-scale=1" />
 
           <style>{`
             html, body, div, span, applet, object, iframe,
