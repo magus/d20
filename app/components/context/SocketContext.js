@@ -12,16 +12,20 @@ export class SocketContextProvider extends React.Component {
 
   componentDidMount() {
     const socket = io();
-    this.setState({ socket });
+    socket.on('connect', () => {
+      this.setState({ socket });
+    });
   }
 
   render() {
-    if (!this.state.socket) return null;
+    const { socket } = this.state;
+
+    if (!socket) return null;
 
     // Use a Provider to pass the current theme to the tree below.
     // Any component can read it, no matter how deep it is.
     return (
-      <SocketContext.Provider value={this.state.socket}>
+      <SocketContext.Provider value={socket}>
         {this.props.children}
       </SocketContext.Provider>
     );
