@@ -2,6 +2,7 @@
 import React from 'react';
 
 import SocketContext, { SocketContextProvider } from '~/app/components/context/SocketContext';
+import Page from '~/app/components/Page';
 import { ROLL } from '~/server/socket/Events';
 import roll from '~/app/utils/roll';
 
@@ -30,11 +31,13 @@ class Index extends React.Component<Props> {
 }
 
 export default () => (
-  <SocketContextProvider>
-    <SocketContext>
-      {
-        socket => <Index socket={socket} />
-      }
-    </SocketContext>
-  </SocketContextProvider>
+  <Page>
+    <SocketContextProvider>
+      <SocketContext>
+        {
+          socket => <Index socket={socket} />
+        }
+      </SocketContext>
+    </SocketContextProvider>
+  </Page>
 );
