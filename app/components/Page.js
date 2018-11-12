@@ -7,12 +7,14 @@ type Props = {
 };
 
 export default ({ children }: Props) => (
-  <Background>
+  <Container>
     {children}
-  </Background>
+  </Container>
 );
 
-const Background = styled.div`
+const Container = styled.div`
   background-color: #FFF;
   color: #000;
+
+  margin: 20px;
 `;
