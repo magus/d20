@@ -1,32 +1,49 @@
 // @flow
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
-import SocketContext, { SocketContextProvider } from '~/app/components/context/SocketContext';
-import Page from '~/app/components/Page';
-import { ROLL } from '~/server/socket/Events';
-import roll from '~/app/utils/roll';
+import SocketContext, {
+  SocketContextProvider
+} from "~/app/components/context/SocketContext";
+import Page from "~/app/components/Page";
+import { ROLL } from "~/server/socket/Events";
+import roll from "~/app/utils/roll";
 
 type Props = {
-  socket: any,
+  socket: any
 };
 
-class Index extends React.Component<Props> {
+type State = {
+  rolls: number[]
+};
+
+const handleRoll = (msg: any) => (state: State) => ({
+  rolls: state.rolls.concat(msg.value)
+});
+
+class WithSocketInfo extends React.Component<Props, State> {
+  _emitRoll: () => void;
+
+  constructor(props: Props) {
+    super(props);
+
+    this.state = {
+      rolls: []
+    };
+
+    this._emitRoll = () => this.props.socket.emit(ROLL, roll());
+  }
+
   componentDidMount() {
-    console.info('mounted', { ...this.props });
-
-    const { socket } = this.props;
-
-    socket.emit(ROLL, roll());
-
-    socket.on(ROLL, msg => {
-      console.info(ROLL, msg);
-    });
+    this.props.socket.on(ROLL, msg => this.setState(handleRoll(msg)));
   }
 
   render() {
     return (
-      <Result>{roll()}</Result>
+      <Result>
+        <pre>{JSON.stringify(this.state.rolls)}</pre>
+        <button onClick={this._emitRoll}>Roll</button>
+      </Result>
     );
   }
 }
@@ -37,9 +54,7 @@ export default () => (
 
     <SocketContextProvider>
       <SocketContext>
-        {
-          socket => <Index socket={socket} />
-        }
+        {socket => <WithSocketInfo socket={socket} />}
       </SocketContext>
     </SocketContextProvider>
   </Page>
@@ -52,6 +67,6 @@ const Header = styled.h1`
   margin-bottom: 10px;
 `;
 
-const Result = styled.p`
+const Result = styled.div`
   font-size: 16px;
-`
+`;
