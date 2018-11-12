@@ -1,3 +1,5 @@
-const ROLL = 'roll';
+const ROLL = "ROLL";
+const USERS = "USERS";
+const IDENTIFY = "IDENTIFY";
 
-module.exports = { ROLL };
+module.exports = { ROLL, USERS, IDENTIFY };

@@ -1,5 +1,5 @@
 // @flow
-import type { RollEvent } from "~/app/types";
+import type { RollEvent, Users } from "~/app/types";
 
 import React from "react";
 import styled from "styled-components";
@@ -8,7 +8,7 @@ import SocketContext, {
   SocketContextProvider
 } from "~/app/components/context/SocketContext";
 import Page from "~/app/components/Page";
-import { ROLL } from "~/server/socket/Events";
+import { USERS, ROLL } from "~/server/socket/Events";
 
 import roll from "~/app/utils/roll";
 
@@ -17,12 +17,15 @@ type Props = {
 };
 
 type State = {
-  rolls: RollEvent[]
+  rolls: RollEvent[],
+  users: Users
 };
 
 const handleRoll = (msg: RollEvent) => (state: State) => ({
   rolls: state.rolls.concat(msg)
 });
+
+const updateUsers = (users: Users) => () => ({ users });
 
 class WithSocketInfo extends React.Component<Props, State> {
   _emitRoll: () => void;
@@ -31,14 +34,21 @@ class WithSocketInfo extends React.Component<Props, State> {
     super(props);
 
     this.state = {
+      users: {},
       rolls: []
     };
 
-    this._emitRoll = () => this.props.socket.emit(ROLL, { user: 'UserA', roll: roll() });
+    this._emitRoll = () =>
+      this.props.socket.emit(ROLL, {
+        user: "UserA",
+        roll: roll(),
+        time: Date.now()
+      });
   }
 
   componentDidMount() {
     this.props.socket.on(ROLL, msg => this.setState(handleRoll(msg)));
+    this.props.socket.on(USERS, msg => this.setState(updateUsers(msg)));
   }
 
   render() {
