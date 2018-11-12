@@ -24,7 +24,7 @@ export default class MyDocument extends Document {
           <meta name="referrer" content="no-referrer" />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3.0, minimum-scale=1" />
 
-          <style>{`
+          <style jsx global>{`
             html, body, div, span, applet, object, iframe,
             h1, h2, h3, h4, h5, h6, p, blockquote, pre,
             a, abbr, acronym, address, big, cite, code,
