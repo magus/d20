@@ -1,3 +1,6 @@
-const HOST_ALIAS = 'd20.now.sh';
+const PUBLIC_HOST = "d20.now.sh";
 
-module.exports = { HOST_ALIAS };
+const PORT = 3000;
+const LOCALHOST = `http://localhost:${PORT}`;
+
+module.exports = { LOCALHOST, PORT, PUBLIC_HOST };

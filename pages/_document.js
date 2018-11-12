@@ -1,3 +1,6 @@
+// @flow
+import React from 'react';
+
 // _document is only rendered on the server side and not on the client side
 // Event handlers like onClick can't be added to this file
 import Document, { Head, Main, NextScript } from "next/document";
@@ -7,7 +10,7 @@ import StyleReset from '~/app/components/StyleReset';
 import GlobalStyles from '~/app/components/GlobalStyles';
 
 export default class MyDocument extends Document {
-  static async getInitialProps(ctx) {
+  static async getInitialProps(ctx: any) {
     const sheet = new ServerStyleSheet();
 
     const originalRenderPage = ctx.renderPage;

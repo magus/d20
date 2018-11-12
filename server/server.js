@@ -16,7 +16,7 @@ const handle = app.getRequestHandler();
 // Ping self every 2 minutes
 setInterval(() => {
   console.info('Pinging localhost to keep server warm...');
-  get('http://localhost:3000');
+  get(ServerConfig.LOCALHOST);
 }, 1000 * 60 * 2);
 
 app.prepare().then(() => {
@@ -24,15 +24,14 @@ app.prepare().then(() => {
     // Be sure to pass `true` as the second argument to `url.parse`.
     // This tells it to parse the query portion of the URL.
     const parsedUrl = parse(req.url, true);
-    const { pathname, query } = parsedUrl;
-
+    // const { pathname, query } = parsedUrl;
     // console.log({ pathname, query });
 
     handle(req, res, parsedUrl);
-  }).listen(3000, err => {
+  }).listen(ServerConfig.PORT, err => {
     if (err) throw err;
 
-    console.log('> Ready on http://localhost:3000');
+    console.log(`> Ready on ${ServerConfig.LOCALHOST}`);
 
     socketSetup(server);
   });
