@@ -20,10 +20,10 @@ function d20party() {
 }
 
 export default () => (
-  <p>
+  <div>
     <span>100k d20s...</span>
     <br />
     <pre>{JSON.stringify(d20party(), null, 2)}</pre>
-  </p>
+  </div>
 );
 
