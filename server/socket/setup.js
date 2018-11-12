@@ -1,17 +1,27 @@
-const Events = require("./Events");
+const Events = require('./Events');
 
 module.exports = server => {
-  const io = require("socket.io")(server);
+  const io = require('socket.io')(server, {
+    // below are engine.IO options
+    pingInterval: 10000,
+    pingTimeout: 5000,
+    cookie: false
+  });
 
   const Users = {};
-  const updateUsers = () => io.emit(Events.USERS, Users);
+  const emitUsers = () => io.emit(Events.USERS, Users);
+  const disconnectUser = (userId) => {
+    console.log(userId, 'disconnect');
+    delete Users[userId];
+    emitUsers();
+  };
 
-  io.on("connection", socket => {
+  io.on('connection', socket => {
     const userId = socket.id;
 
-    console.log("user connected");
+    console.log(userId, 'connected');
     Users[userId] = null;
-    updateUsers();
+    emitUsers();
 
     socket.on(Events.ROLL, msg => {
       io.emit(Events.ROLL, msg);
@@ -19,13 +29,10 @@ module.exports = server => {
 
     socket.on(Events.IDENTIFY, msg => {
       Users[userId] = msg;
-      updateUsers();
+      emitUsers();
     });
 
-    socket.on("disconnect", () => {
-      console.log("user disconnected");
-      delete Users[userId];
-      updateUsers();
-    });
+    socket.on('disconnect', () => disconnectUser(userId));
+    socket.on('error', () => disconnectUser(userId));
   });
 };
