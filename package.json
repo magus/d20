@@ -7,14 +7,12 @@
   "author": "noah <noah@iamnoah.com>",
   "license": "MIT",
   "scripts": {
-    "micro": "micro",
     "dev": "node server",
     "build": "next build",
     "export": "next export",
     "start": "NODE_ENV=production node server"
   },
   "dependencies": {
-    "micro": "latest",
     "next": "^7.0.2",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
