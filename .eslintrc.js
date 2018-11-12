@@ -23,6 +23,7 @@ module.exports = {
   plugins: ["react", "flowtype"],
   rules: {
     "no-console": OFF,
+    "flowtype/define-flow-type": [1],
 
     "react/prop-types": OFF,
     "react/jsx-uses-vars": [2],
