@@ -8,7 +8,7 @@ function User({ name }: { name: string }) {
   return <div>{name}</div>;
 }
 
-export default ({ title, users }: { title: string, users: ActiveUsers }) => {
+export default ({ title = "Users", users }: { title: string, users: ActiveUsers }) => {
   const userIds = Object.keys(users);
 
   return (
