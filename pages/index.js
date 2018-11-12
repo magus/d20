@@ -44,7 +44,7 @@ class WithSocketInfo extends React.Component<Props, State> {
   render() {
     return (
       <Result>
-        <pre>{JSON.stringify(this.state.rolls, null, 2)}</pre>
+        <Monospace>{JSON.stringify(this.state.rolls, null, 2)}</Monospace>
         <button onClick={this._emitRoll}>Roll</button>
       </Result>
     );
@@ -72,4 +72,8 @@ const Header = styled.h1`
 
 const Result = styled.div`
   font-size: 16px;
+`;
+
+const Monospace = styled.pre`
+  font-family: monospace;
 `;
