@@ -10,7 +10,8 @@
     "dev": "node server",
     "build": "next build",
     "export": "next export",
-    "start": "NODE_ENV=production node server"
+    "start": "NODE_ENV=production node server",
+    "start:win": "set NODE_ENV=production && node server"
   },
   "dependencies": {
     "next": "^7.0.2",
