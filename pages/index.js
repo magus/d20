@@ -45,4 +45,8 @@ export default () => (
   </Page>
 );
 
-const Header = styled.h1``;
+const Header = styled.h1`
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 10px;
+`;

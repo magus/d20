@@ -13,6 +13,6 @@ export default ({ children }: Props) => (
 );
 
 const Background = styled.div`
-  background: white;
-  color: red;
+  background-color: #FFF;
+  color: #000;
 `;

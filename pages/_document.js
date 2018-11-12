@@ -73,6 +73,13 @@ export default class MyDocument extends Document {
               border-spacing: 0;
             }
           `}</style>
+
+          <style jsx global>{`
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            }
+          `}
+          </style>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
         </Head>
         <body>
