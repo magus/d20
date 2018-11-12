@@ -54,26 +54,25 @@ class WithSocketInfo extends React.Component<Props, State> {
 
   render() {
     return (
-      <Result>
-        <Users users={this.state.users} />
+      <Page>
+        <Header>d20</Header>
+        <Result>
+          <Users users={this.state.users} />
 
-        <button onClick={this._emitRoll}>Roll</button>
-        <Monospace>{JSON.stringify(this.state.rolls, null, 2)}</Monospace>
-      </Result>
+          <button onClick={this._emitRoll}>Roll</button>
+          <Monospace>{JSON.stringify(this.state.rolls, null, 2)}</Monospace>
+        </Result>
+      </Page>
     );
   }
 }
 
 export default () => (
-  <Page>
-    <Header>d20</Header>
-
-    <SocketContextProvider>
-      <SocketContext>
-        {socket => <WithSocketInfo socket={socket} />}
-      </SocketContext>
-    </SocketContextProvider>
-  </Page>
+  <SocketContextProvider>
+    <SocketContext>
+      {socket => <WithSocketInfo socket={socket} />}
+    </SocketContext>
+  </SocketContextProvider>
 );
 
 const Header = styled.h1`
