@@ -40,7 +40,7 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     this._emitRoll = () =>
       this.props.socket.emit(ROLL, {
-        user: "UserA",
+        user: this.props.socket.id,
         roll: roll(),
         time: Date.now()
       });
