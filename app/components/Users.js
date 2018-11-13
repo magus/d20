@@ -8,18 +8,14 @@ import styled from 'styled-components';
 import User from '~/app/components/User';
 
 export default ({
-  title = 'Users',
   users,
 }: {
-  title?: string,
   users: ActiveUsers,
 }) => {
   const userIds = Object.keys(users);
 
   return (
     <Container>
-      <h2>{title}</h2>
-
       <Usernames>
         {userIds.map(userId => {
           const identity: UserIdentity = users[userId] || userFromId(userId);
