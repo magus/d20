@@ -1,6 +1,6 @@
 // @flow
 import type {
-  ActiveUsers,
+  UserLookup,
   RollEvent,
   DieRollType,
   UserIdentity,
@@ -64,7 +64,7 @@ export default ({
   users,
 }: {
   rolls: RollsByUser,
-  users: ActiveUsers,
+  users: UserLookup,
 }) => {
   const userIds = Object.keys(users);
 

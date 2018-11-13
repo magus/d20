@@ -1,5 +1,5 @@
 // @flow
-import type { RollEvent, ActiveUsers, RollsByUser } from '~/app/types';
+import type { RollEvent, UserLookup, RollsByUser } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
@@ -24,7 +24,8 @@ type Props = {
 
 type State = {
   rolls: RollsByUser,
-  users: ActiveUsers,
+  users: UserLookup,
+  activeUsers: UserLookup,
 };
 
 const handleRoll = (roll: RollEvent) => (state: State) => {
@@ -40,9 +41,9 @@ const handleRoll = (roll: RollEvent) => (state: State) => {
   };
 };
 
-const updateUsers = (activeUsers: ActiveUsers) => (state: State) => {
+const updateUsers = (activeUsers: UserLookup) => (state: State) => {
   const users = { ...state.users, ...activeUsers };
-  return { users };
+  return { activeUsers, users };
 };
 
 const createGUID = () => {
@@ -61,6 +62,7 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     this.state = {
       users: {},
+      activeUsers: {},
       rolls: {},
     };
 
@@ -89,7 +91,7 @@ class WithSocketInfo extends React.Component<Props, State> {
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
         <Result>
-          <Users users={this.state.users} />
+          <Users users={this.state.users} activeUsers={this.state.activeUsers} />
 
           <button onClick={this._emitRoll}>Roll</button>
           <Rolls rolls={this.state.rolls} users={this.state.users} />

@@ -6,9 +6,15 @@ import styled from 'styled-components';
 
 import { emojiFromUserId } from '~/app/utils/emoji';
 
-export default function User({ identity }: { identity: UserIdentity }) {
+export default function User({
+  identity,
+  inactive,
+}: {
+  identity: UserIdentity,
+  inactive?: boolean,
+}) {
   return (
-    <Username>
+    <Username inactive={inactive}>
       {emojiFromUserId(identity.id)} {identity.name}
     </Username>
   );
@@ -19,4 +25,7 @@ const Username = styled.div`
   border-radius: 4px;
   padding: 4px;
   margin: 0 4px 0 0;
+
+  background: ${props => (props.inactive ? '#999' : 'initial')};
+  opacity: ${props => (props.inactive ? '0.4' : 'initial')};
 `;

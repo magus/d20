@@ -1,5 +1,5 @@
 // @flow
-import type { ActiveUsers, UserIdentity } from '~/app/types';
+import type { UserLookup, UserIdentity } from '~/app/types';
 import { userFromId } from '~/app/types';
 
 import React from 'react';
@@ -9,18 +9,34 @@ import User from '~/app/components/User';
 
 export default ({
   users,
+  activeUsers,
 }: {
-  users: ActiveUsers,
+  users: UserLookup,
+  activeUsers: UserLookup,
 }) => {
   const userIds = Object.keys(users);
+  const activeUserIds = Object.keys(activeUsers);
 
   return (
     <Container>
+      {/* Active */}
       <Usernames>
-        {userIds.map(userId => {
+      {activeUserIds.map(userId => {
           const identity: UserIdentity = users[userId] || userFromId(userId);
 
           return <User key={userId} identity={identity} />;
+        })}
+      </Usernames>
+
+      {/* Inactive */}
+      <Usernames>
+        {userIds.map(userId => {
+          // Do not show active users here
+          if (activeUsers[userId]) return;
+
+          const identity: UserIdentity = users[userId] || userFromId(userId);
+
+          return <User key={userId} identity={identity} inactive />;
         })}
       </Usernames>
     </Container>
