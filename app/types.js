@@ -1,8 +1,8 @@
 // @flow
-export type DieRoll = { d: number, result: number, mod: number };
+export type DieRollType = { d: number, result: number, mod: number };
 
 // Socket events
-export type RollEvent = { id: string, userId: string, dieRolls: DieRoll[], time: number };
+export type RollEvent = { id: string, userId: string, dieRolls: DieRollType[], time: number };
 export type UserIdentity = { id: string, name: string, image: string | null };
 export type ActiveUsers = { [userId: string]: UserIdentity | null };
 

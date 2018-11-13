@@ -1,5 +1,10 @@
 // @flow
-import type { ActiveUsers, RollEvent, UserIdentity } from '~/app/types';
+import type {
+  ActiveUsers,
+  RollEvent,
+  UserIdentity,
+  DieRollType,
+} from '~/app/types';
 import { userFromId } from '~/app/types';
 
 import React from 'react';
@@ -7,6 +12,21 @@ import styled from 'styled-components';
 
 import User from '~/app/components/User';
 
+function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
+  const { mod } = dieRoll;
+  let modStr = '';
+  if (mod !== 0) {
+    const sign = mod > 0 ? '+' : '-';
+    modStr = `${sign}${mod}`;
+  }
+
+  return (
+    <DieRollContainer>
+      <DieRollResult>{`${dieRoll.result}`}</DieRollResult>
+      <DieRollInfo>{`(d${dieRoll.d}${modStr})`}</DieRollInfo>
+    </DieRollContainer>
+  );
+}
 function Roll({ roll, users }: { users: ActiveUsers, roll: RollEvent }) {
   const userId = roll.userId;
   const identity: UserIdentity = users[userId] || userFromId(userId);
@@ -15,16 +35,7 @@ function Roll({ roll, users }: { users: ActiveUsers, roll: RollEvent }) {
     <RollContainer>
       <User key={userId} identity={identity} />
       {roll.dieRolls.map((dieRoll, i) => {
-        const { mod } = dieRoll;
-        let modStr;
-        if (mod === 0) {
-          modStr = '+0';
-        } else {
-          const sign = mod > 0 ? '+' : '-';
-          modStr = `${sign}${mod}`;
-        }
-
-        return <div key={i}>{`${dieRoll.result} (d${dieRoll.d}${modStr})`}</div>
+        return <DieRoll key={i} dieRoll={dieRoll} />;
       })}
     </RollContainer>
   );
@@ -57,3 +68,15 @@ const Rolls = styled.div`
 `;
 
 const RollContainer = styled.div``;
+
+const DieRollContainer = styled.div``;
+
+const DieRollResult = styled.span`
+  color: #000;
+  font-weight: 700;
+  margin: 0 2px 0 0;
+`;
+const DieRollInfo = styled.span`
+  color: #999;
+  font-weight: 100;
+`;
