@@ -3,10 +3,15 @@ import type {
   ActiveUsers,
   RollEvent,
   DieRollType,
+  UserIdentity,
+  RollsByUser,
 } from '~/app/types';
+import { userFromId } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
+
+import User from '~/app/components/User';
 
 function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
   const { mod } = dieRoll;
@@ -23,6 +28,28 @@ function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
     </DieRollContainer>
   );
 }
+
+function UserRolls({
+  identity,
+  rolls,
+}: {
+  identity: UserIdentity,
+  rolls: RollEvent[],
+}) {
+  if (!rolls) return null;
+
+  return (
+    <div>
+      <User identity={identity} />
+      <Rolls>
+        {rolls.map(roll => (
+          <Roll key={roll.id} roll={roll} />
+        ))}
+      </Rolls>
+    </div>
+  );
+}
+
 function Roll({ roll }: { roll: RollEvent }) {
   return (
     <RollContainer>
@@ -36,16 +63,20 @@ export default ({
   rolls,
   users,
 }: {
-  rolls: RollEvent[],
+  rolls: RollsByUser,
   users: ActiveUsers,
 }) => {
+  const userIds = Object.keys(users);
+
   return (
     <Container>
-      <Rolls>
-        {rolls.map(roll => (
-          <Roll key={roll.id} roll={roll} users={users} />
-        ))}
-      </Rolls>
+      {userIds.map(userId => {
+        const identity: UserIdentity = users[userId] || userFromId(userId);
+
+        return (
+          <UserRolls key={userId} identity={identity} rolls={rolls[userId]} />
+        );
+      })}
     </Container>
   );
 };

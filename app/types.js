@@ -5,6 +5,7 @@ export type DieRollType = { d: number, result: number, mod: number };
 export type RollEvent = { id: string, userId: string, dieRolls: DieRollType[], time: number };
 export type UserIdentity = { id: string, name: string, image: string | null };
 export type ActiveUsers = { [userId: string]: UserIdentity | null };
+export type RollsByUser = { [userId: string]: RollEvent[] };
 
 export const userFromId = (userId: string): UserIdentity => ({
   id: userId,
