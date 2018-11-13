@@ -1,42 +1,21 @@
 // @flow
-import type { UserLookup, UserIdentity } from '~/app/types';
-import { userFromId } from '~/app/types';
+import type { UserLookup } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
+import _sortBy from 'lodash/sortBy';
 
 import User from '~/app/components/User';
 
-export default ({
-  users,
-  activeUsers,
-}: {
-  users: UserLookup,
-  activeUsers: UserLookup,
-}) => {
-  const userIds = Object.keys(users);
-  const activeUserIds = Object.keys(activeUsers);
+export default ({ users }: { users: UserLookup }) => {
+  const userIds = _sortBy(Object.keys(users), userId => !users[userId].active);
+  const userIdsByLastActive = _sortBy(userIds, userId => -1 * users[userId].lastActive);
 
   return (
     <Container>
-      {/* Active */}
       <Usernames>
-      {activeUserIds.map(userId => {
-          const identity: UserIdentity = users[userId] || userFromId(userId);
-
-          return <User key={userId} identity={identity} />;
-        })}
-      </Usernames>
-
-      {/* Inactive */}
-      <Usernames>
-        {userIds.map(userId => {
-          // Do not show active users here
-          if (userId in activeUsers) return;
-
-          const identity: UserIdentity = users[userId] || userFromId(userId);
-
-          return <User key={userId} identity={identity} inactive />;
+        {userIdsByLastActive.map(userId => {
+          return <User key={userId} identity={users[userId]} />;
         })}
       </Usernames>
     </Container>

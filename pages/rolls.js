@@ -25,7 +25,6 @@ type Props = {
 type State = {
   rolls: RollsByUser,
   users: UserLookup,
-  activeUsers: UserLookup,
 };
 
 const handleRoll = (roll: RollEvent) => (state: State) => {
@@ -43,7 +42,22 @@ const handleRoll = (roll: RollEvent) => (state: State) => {
 
 const updateUsers = (activeUsers: UserLookup) => (state: State) => {
   const users = { ...state.users, ...activeUsers };
-  return { activeUsers, users };
+
+  // Set active status
+  Object.keys(users).forEach(userId => {
+    if (!users[userId]) {
+      users[userId] = userFromId(userId);
+    }
+
+    users[userId].active = (userId in activeUsers);
+  });
+
+  // Set lastActive on users
+  Object.keys(activeUsers).forEach(activeUserId => {
+    users[activeUserId].lastActive = Date.now();
+  });
+
+  return { users };
 };
 
 const createGUID = () => {
@@ -62,7 +76,6 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     this.state = {
       users: {},
-      activeUsers: {},
       rolls: {},
     };
 
@@ -93,14 +106,12 @@ class WithSocketInfo extends React.Component<Props, State> {
         <Result>
           <Users
             users={this.state.users}
-            activeUsers={this.state.activeUsers}
           />
 
           <button onClick={this._emitRoll}>Roll</button>
           <Rolls
             rolls={this.state.rolls}
             users={this.state.users}
-            activeUsers={this.state.activeUsers}
           />
         </Result>
       </Page>

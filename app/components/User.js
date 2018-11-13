@@ -8,13 +8,11 @@ import { emojiFromUserId } from '~/app/utils/emoji';
 
 export default function User({
   identity,
-  inactive,
 }: {
   identity: UserIdentity,
-  inactive?: boolean,
 }) {
   return (
-    <Username inactive={inactive}>
+    <Username inactive={!identity.active}>
       {emojiFromUserId(identity.id)} {identity.name}
     </Username>
   );

@@ -6,10 +6,10 @@ import type {
   UserIdentity,
   RollsByUser,
 } from '~/app/types';
-import { userFromId } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
+import _sortBy from 'lodash/sortBy';
 
 import User from '~/app/components/User';
 
@@ -32,17 +32,15 @@ function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
 function UserRolls({
   identity,
   rolls,
-  inactive,
 }: {
   identity: UserIdentity,
   rolls: RollEvent[],
-  inactive?: boolean,
 }) {
   if (!rolls) return null;
 
   return (
     <UserRollContainer>
-      <User identity={identity} inactive={inactive} />
+      <User identity={identity} />
       <Rolls>
         {rolls.map(roll => (
           <Roll key={roll.id} roll={roll} />
@@ -64,35 +62,22 @@ function Roll({ roll }: { roll: RollEvent }) {
 export default ({
   rolls,
   users,
-  activeUsers,
 }: {
   rolls: RollsByUser,
   users: UserLookup,
-  activeUsers: UserLookup,
 }) => {
-  const userIds = Object.keys(users);
-  const activeUserIds = Object.keys(activeUsers);
+  const userIds = _sortBy(Object.keys(users), userId => !users[userId].active);
+  const userIdsByLastActive = _sortBy(userIds, userId => -1 * users[userId].lastActive);
 
   return (
     <Container>
-      {/* Active */}
-      {activeUserIds.map(userId => {
-        const identity: UserIdentity = users[userId] || userFromId(userId);
-
+      {userIdsByLastActive.map(userId => {
         return (
-          <UserRolls key={userId} identity={identity} rolls={rolls[userId]} />
-        );
-      })}
-
-      {/* Inactive */}
-      {userIds.map(userId => {
-        // Do not show active users here
-        if (userId in activeUsers) return;
-
-        const identity: UserIdentity = users[userId] || userFromId(userId);
-
-        return (
-          <UserRolls key={userId} identity={identity} rolls={rolls[userId]} inactive />
+          <UserRolls
+            key={userId}
+            identity={users[userId]}
+            rolls={rolls[userId]}
+          />
         );
       })}
     </Container>
