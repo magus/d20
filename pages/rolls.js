@@ -27,9 +27,12 @@ type State = {
   users: ActiveUsers,
 };
 
-const handleRoll = (msg: RollEvent) => (state: State) => ({
-  rolls: state.rolls.concat(msg),
-});
+const handleRoll = (msg: RollEvent) => (state: State) => {
+  const rolls = [msg, ...state.rolls];
+  return {
+    rolls,
+  };
+};
 
 const updateUsers = (users: ActiveUsers) => () => ({ users });
 
