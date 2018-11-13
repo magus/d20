@@ -91,10 +91,17 @@ class WithSocketInfo extends React.Component<Props, State> {
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
         <Result>
-          <Users users={this.state.users} activeUsers={this.state.activeUsers} />
+          <Users
+            users={this.state.users}
+            activeUsers={this.state.activeUsers}
+          />
 
           <button onClick={this._emitRoll}>Roll</button>
-          <Rolls rolls={this.state.rolls} users={this.state.users} />
+          <Rolls
+            rolls={this.state.rolls}
+            users={this.state.users}
+            activeUsers={this.state.activeUsers}
+          />
         </Result>
       </Page>
     );

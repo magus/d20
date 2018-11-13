@@ -32,7 +32,7 @@ export default ({
       <Usernames>
         {userIds.map(userId => {
           // Do not show active users here
-          if (activeUsers[userId]) return;
+          if (userId in activeUsers) return;
 
           const identity: UserIdentity = users[userId] || userFromId(userId);
 

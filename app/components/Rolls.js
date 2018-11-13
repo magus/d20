@@ -39,14 +39,14 @@ function UserRolls({
   if (!rolls) return null;
 
   return (
-    <div>
+    <UserRollContainer>
       <User identity={identity} />
       <Rolls>
         {rolls.map(roll => (
           <Roll key={roll.id} roll={roll} />
         ))}
       </Rolls>
-    </div>
+    </UserRollContainer>
   );
 }
 
@@ -65,6 +65,7 @@ export default ({
 }: {
   rolls: RollsByUser,
   users: UserLookup,
+  activeUsers: UserLookup,
 }) => {
   const userIds = Object.keys(users);
 
@@ -106,4 +107,10 @@ const DieRollInfo = styled.span`
   color: #999;
   font-weight: 100;
   font-size: 12px;
+`;
+
+const UserRollContainer = styled.div`
+  border-top: 1px solid #eaeaea;
+  padding: 8px 0 0 0;
+  margin: 16px 0 0 0;
 `;
