@@ -2,15 +2,11 @@
 import type {
   ActiveUsers,
   RollEvent,
-  UserIdentity,
   DieRollType,
 } from '~/app/types';
-import { userFromId } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
-
-import User from '~/app/components/User';
 
 function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
   const { mod } = dieRoll;
@@ -27,13 +23,9 @@ function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
     </DieRollContainer>
   );
 }
-function Roll({ roll, users }: { users: ActiveUsers, roll: RollEvent }) {
-  const userId = roll.userId;
-  const identity: UserIdentity = users[userId] || userFromId(userId);
-
+function Roll({ roll }: { roll: RollEvent }) {
   return (
     <RollContainer>
-      <User key={userId} identity={identity} />
       {roll.dieRolls.map((dieRoll, i) => {
         return <DieRoll key={i} dieRoll={dieRoll} />;
       })}
@@ -69,14 +61,18 @@ const Rolls = styled.div`
 
 const RollContainer = styled.div``;
 
-const DieRollContainer = styled.div``;
+const DieRollContainer = styled.div`
+  margin: 0 12px 0 0;
+`;
 
 const DieRollResult = styled.span`
   color: #000;
   font-weight: 700;
+  font-size: 20px;
   margin: 0 2px 0 0;
 `;
 const DieRollInfo = styled.span`
   color: #999;
   font-weight: 100;
+  font-size: 12px;
 `;
