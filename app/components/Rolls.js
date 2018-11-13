@@ -32,15 +32,17 @@ function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
 function UserRolls({
   identity,
   rolls,
+  inactive,
 }: {
   identity: UserIdentity,
   rolls: RollEvent[],
+  inactive?: boolean,
 }) {
   if (!rolls) return null;
 
   return (
     <UserRollContainer>
-      <User identity={identity} />
+      <User identity={identity} inactive={inactive} />
       <Rolls>
         {rolls.map(roll => (
           <Roll key={roll.id} roll={roll} />
@@ -62,20 +64,35 @@ function Roll({ roll }: { roll: RollEvent }) {
 export default ({
   rolls,
   users,
+  activeUsers,
 }: {
   rolls: RollsByUser,
   users: UserLookup,
   activeUsers: UserLookup,
 }) => {
   const userIds = Object.keys(users);
+  const activeUserIds = Object.keys(activeUsers);
 
   return (
     <Container>
-      {userIds.map(userId => {
+      {/* Active */}
+      {activeUserIds.map(userId => {
         const identity: UserIdentity = users[userId] || userFromId(userId);
 
         return (
           <UserRolls key={userId} identity={identity} rolls={rolls[userId]} />
+        );
+      })}
+
+      {/* Inactive */}
+      {userIds.map(userId => {
+        // Do not show active users here
+        if (userId in activeUsers) return;
+
+        const identity: UserIdentity = users[userId] || userFromId(userId);
+
+        return (
+          <UserRolls key={userId} identity={identity} rolls={rolls[userId]} inactive />
         );
       })}
     </Container>
