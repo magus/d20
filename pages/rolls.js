@@ -40,7 +40,10 @@ const handleRoll = (roll: RollEvent) => (state: State) => {
   };
 };
 
-const updateUsers = (users: ActiveUsers) => () => ({ users });
+const updateUsers = (activeUsers: ActiveUsers) => (state: State) => {
+  const users = { ...state.users, ...activeUsers };
+  return { users };
+};
 
 const createGUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {

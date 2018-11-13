@@ -33,4 +33,5 @@ const Usernames = styled.div`
   margin: 0 0 8px 0;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
 `;
