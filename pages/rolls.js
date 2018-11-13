@@ -1,36 +1,45 @@
 // @flow
-import type { RollEvent, ActiveUsers } from "~/app/types";
+import type { RollEvent, ActiveUsers } from '~/app/types';
 
-import React from "react";
-import styled from "styled-components";
+import React from 'react';
+import styled from 'styled-components';
 
 import SocketContext, {
-  SocketContextProvider
-} from "~/app/components/context/SocketContext";
+  SocketContextProvider,
+} from '~/app/components/context/SocketContext';
 
-import ConnectedUser from "~/app/components/ConnectedUser";
-import Page from "~/app/components/Page";
-import Users from "~/app/components/Users";
+import ConnectedUser from '~/app/components/ConnectedUser';
+import Page from '~/app/components/Page';
+import Rolls from '~/app/components/Rolls';
+import Users from '~/app/components/Users';
 
-import { USERS, ROLL } from "~/server/socket/Events";
+import { USERS, ROLL } from '~/server/socket/Events';
 
-import roll from "~/app/utils/roll";
+import rollDie from '~/app/utils/rollDie';
 import { userFromId } from '~/app/types';
 
 type Props = {
-  socket: any
+  socket: any,
 };
 
 type State = {
   rolls: RollEvent[],
-  users: ActiveUsers
+  users: ActiveUsers,
 };
 
 const handleRoll = (msg: RollEvent) => (state: State) => ({
-  rolls: state.rolls.concat(msg)
+  rolls: state.rolls.concat(msg),
 });
 
 const updateUsers = (users: ActiveUsers) => () => ({ users });
+
+const createGUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 class WithSocketInfo extends React.Component<Props, State> {
   _emitRoll: () => void;
@@ -40,15 +49,18 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     this.state = {
       users: {},
-      rolls: []
+      rolls: [],
     };
 
-    this._emitRoll = () =>
-      this.props.socket.emit(ROLL, {
-        user: this.props.socket.id,
-        roll: roll(),
-        time: Date.now()
-      });
+    this._emitRoll = () => {
+      const roll: RollEvent = {
+        userId: this.props.socket.id,
+        dieRolls: [rollDie()],
+        time: Date.now(),
+        id: createGUID(),
+      };
+      this.props.socket.emit(ROLL, roll);
+    };
   }
 
   componentDidMount() {
@@ -68,7 +80,7 @@ class WithSocketInfo extends React.Component<Props, State> {
           <Users users={this.state.users} />
 
           <button onClick={this._emitRoll}>Roll</button>
-          <Monospace>{JSON.stringify(this.state.rolls, null, 2)}</Monospace>
+          <Rolls rolls={this.state.rolls} users={this.state.users} />
         </Result>
       </Page>
     );
@@ -92,8 +104,4 @@ const Header = styled.h1`
 
 const Result = styled.div`
   font-size: 16px;
-`;
-
-const Monospace = styled.pre`
-  font-family: monospace;
 `;

@@ -1,13 +1,13 @@
 // @flow
 import React from 'react';
 
-import roll from '~/app/utils/roll';
+import rollDie from '~/app/utils/rollDie';
 
 function d20party() {
   const results = {};
 
   for (let i = 0; i < 100000; i++) {
-    const result = roll().result;
+    const result = rollDie().result;
 
     // ensure result is initialized
     if (typeof results[result] === 'undefined') results[result] = 0;
