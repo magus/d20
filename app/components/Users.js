@@ -1,20 +1,26 @@
 // @flow
-import type { ActiveUsers } from "~/app/types";
-import { userFromId } from "~/app/types";
+import type { ActiveUsers, UserIdentity } from '~/app/types';
+import { userFromId } from '~/app/types';
 
-import React from "react";
-import styled from "styled-components";
+import React from 'react';
+import styled from 'styled-components';
 
-function User({ name }: { name: string }) {
-  return <Username>{name}</Username>;
+import { emojiFromUserId } from '~/app/utils/emoji';
+
+function User({ identity }: { identity: UserIdentity }) {
+  return (
+    <Username>
+      {emojiFromUserId(identity.id)} {identity.name}
+    </Username>
+  );
 }
 
 export default ({
-  title = "Users",
-  users
+  title = 'Users',
+  users,
 }: {
   title?: string,
-  users: ActiveUsers
+  users: ActiveUsers,
 }) => {
   const userIds = Object.keys(users);
 
@@ -24,9 +30,9 @@ export default ({
 
       <Usernames>
         {userIds.map(userId => {
-          const identity = users[userId] || userFromId(userId);
+          const identity: UserIdentity = users[userId] || userFromId(userId);
 
-          return <User key={userId} name={identity.name} />;
+          return <User key={userId} identity={identity} />;
         })}
       </Usernames>
     </Container>
@@ -42,7 +48,7 @@ const Usernames = styled.div`
 `;
 
 const Username = styled.div`
-  border: 1px solid #aaa;
+  border: 1px solid #666;
   border-radius: 4px;
   padding: 4px;
   margin: 0 4px 0 0;

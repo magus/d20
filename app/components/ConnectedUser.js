@@ -1,10 +1,10 @@
 // @flow
-import type { User } from "~/app/types";
+import type { UserIdentity } from "~/app/types";
 
 import React from "react";
 import styled from "styled-components";
 
-export default function ConnectedUser({ user }: { user: User }) {
+export default function ConnectedUser({ user }: { user: UserIdentity }) {
   return (
     <Container>
       {user.name}
