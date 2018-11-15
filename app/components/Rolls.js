@@ -99,8 +99,9 @@ const Container = styled.div``;
 const Rolls = styled.div`
   margin: 0 0 8px 0;
   max-height: calc(${RollContainerHeight}px * ${props => props.rows || 2});
-  overflow: scroll;
   padding: 0 0 ${RollContainerHeight}px 0;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
 
   display: flex;
   flex-direction: column;
