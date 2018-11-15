@@ -108,6 +108,7 @@ const Rolls = styled.div`
 
 const RollContainer = styled.div`
   min-height: ${RollContainerHeight}px;
+  max-height: ${RollContainerHeight}px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -141,7 +142,7 @@ const UserRollContainer = styled.div`
 `;
 
 const RollsMask = styled.div`
-  background: linear-gradient(transparent, white 75%);
+  background: linear-gradient(rgba(255, 255, 255, 0), white 40%);
   height: ${RollContainerHeight}px;
   width: 100%;
   position: absolute;
