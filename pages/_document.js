@@ -3,26 +3,36 @@ import React from 'react';
 
 // _document is only rendered on the server side and not on the client side
 // Event handlers like onClick can't be added to this file
-import Document, { Head, Main, NextScript } from "next/document";
-import { ServerStyleSheet } from "styled-components";
+import Document, { Head, Main, NextScript } from 'next/document';
+import { ServerStyleSheet } from 'styled-components';
 
 import StyleReset from '~/app/components/StyleReset';
 import GlobalStyles from '~/app/components/GlobalStyles';
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: any) {
-    const sheet = new ServerStyleSheet();
+    // react-intl SSR
+    const {
+      req: { localeDataScript },
+    } = ctx;
 
+    // styled-components SSR
+    const sheet = new ServerStyleSheet();
     const originalRenderPage = ctx.renderPage;
     ctx.renderPage = () =>
       originalRenderPage({
-        enhanceApp: App => props => sheet.collectStyles(<App {...props} />)
+        enhanceApp: App => props => sheet.collectStyles(<App {...props} />),
       });
 
     const initialProps = await Document.getInitialProps(ctx);
     return {
       ...initialProps,
-      styles: [...initialProps.styles, ...sheet.getStyleElement()]
+
+      // react-intl SSR
+      localeDataScript,
+
+      // styled-components SSR
+      styles: [...initialProps.styles, ...sheet.getStyleElement()],
     };
   }
 
@@ -46,6 +56,14 @@ export default class MyDocument extends Document {
 
         <body>
           <Main />
+
+          {/* react-intl SSR */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: this.props.localeDataScript,
+            }}
+          />
+
           <NextScript />
         </body>
       </html>

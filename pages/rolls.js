@@ -2,6 +2,7 @@
 import type { RollEvent, UserLookup, RollsByUser } from '~/app/types';
 
 import React from 'react';
+import { defineMessages, FormattedMessage } from 'react-intl';
 import styled from 'styled-components';
 
 import SocketContext, {
@@ -69,6 +70,13 @@ const createGUID = () => {
   });
 };
 
+const messages = defineMessages({
+  roll: {
+    id: 'roll',
+    defaultMessage: 'Roll',
+  },
+});
+
 class WithSocketInfo extends React.Component<Props, State> {
   _emitRoll: () => void;
 
@@ -101,13 +109,15 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     return (
       <Page>
-        <Header>d20</Header>
+        <Header>d20asdfa</Header>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
         <Result>
           <Users users={this.state.users} />
 
-          <button onClick={this._emitRoll}>Roll</button>
+          <button onClick={this._emitRoll}>
+            <FormattedMessage {...messages.roll} />
+          </button>
           <Rolls rolls={this.state.rolls} users={this.state.users} />
         </Result>
       </Page>
