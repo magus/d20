@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import SocketContext, {
   SocketContextProvider,
 } from '~/app/components/context/SocketContext';
+import pageWithIntl from '~/app/components/context/PageWithIntl';
 
 import ConnectedUser from '~/app/components/ConnectedUser';
 import Page from '~/app/components/Page';
@@ -49,7 +50,7 @@ const updateUsers = (activeUsers: UserLookup) => (state: State) => {
       users[userId] = userFromId(userId);
     }
 
-    users[userId].active = (userId in activeUsers);
+    users[userId].active = userId in activeUsers;
   });
 
   // Set lastActive on users
@@ -104,28 +105,27 @@ class WithSocketInfo extends React.Component<Props, State> {
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
         <Result>
-          <Users
-            users={this.state.users}
-          />
+          <Users users={this.state.users} />
 
           <button onClick={this._emitRoll}>Roll</button>
-          <Rolls
-            rolls={this.state.rolls}
-            users={this.state.users}
-          />
+          <Rolls rolls={this.state.rolls} users={this.state.users} />
         </Result>
       </Page>
     );
   }
 }
 
-export default () => (
-  <SocketContextProvider>
-    <SocketContext>
-      {socket => <WithSocketInfo socket={socket} />}
-    </SocketContext>
-  </SocketContextProvider>
-);
+function RollsPage() {
+  return (
+    <SocketContextProvider>
+      <SocketContext>
+        {socket => <WithSocketInfo socket={socket} />}
+      </SocketContext>
+    </SocketContextProvider>
+  );
+}
+
+export default pageWithIntl(RollsPage);
 
 const Header = styled.h1`
   text-align: center;

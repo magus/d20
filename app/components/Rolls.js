@@ -11,6 +11,7 @@ import React from 'react';
 import styled from 'styled-components';
 import _sortBy from 'lodash/sortBy';
 
+import TimeAgo from '~/app/components/TimeAgo';
 import User from '~/app/components/User';
 
 function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
@@ -57,6 +58,7 @@ function Roll({ roll }: { roll: RollEvent }) {
       {roll.dieRolls.map((dieRoll, i) => {
         return <DieRoll key={i} dieRoll={dieRoll} />;
       })}
+      <TimeAgo time={roll.time} />
     </RollContainer>
   );
 }
