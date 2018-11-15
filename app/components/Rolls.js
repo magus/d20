@@ -58,7 +58,9 @@ function Roll({ roll }: { roll: RollEvent }) {
       {roll.dieRolls.map((dieRoll, i) => {
         return <DieRoll key={i} dieRoll={dieRoll} />;
       })}
-      <TimeAgo time={roll.time} />
+      <RollTime>
+        <TimeAgo time={roll.time} />
+      </RollTime>
     </RollContainer>
   );
 }
@@ -70,7 +72,10 @@ export default ({
   users: UserLookup,
 }) => {
   const userIds = _sortBy(Object.keys(users), userId => !users[userId].active);
-  const userIdsByLastActive = _sortBy(userIds, userId => -1 * users[userId].lastActive);
+  const userIdsByLastActive = _sortBy(
+    userIds,
+    userId => -1 * users[userId].lastActive
+  );
 
   return (
     <Container>
@@ -104,12 +109,17 @@ const Rolls = styled.div`
 const RollContainer = styled.div`
   min-height: ${RollContainerHeight}px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 `;
 
-const DieRollContainer = styled.div`
-  margin: 0 12px 0 0;
+const RollTime = styled.div`
+  font-size: 10px;
+  font-weight: 100;
+  align-self: flex-end;
 `;
+
+const DieRollContainer = styled.div``;
 
 const DieRollResult = styled.span`
   color: #000;
