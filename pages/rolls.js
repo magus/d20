@@ -109,7 +109,7 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     return (
       <Page>
-        <Header>d20asdfa</Header>
+        <Header>d20</Header>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
         <Result>

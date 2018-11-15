@@ -39,13 +39,22 @@ const getLocaleDataScript = locale => {
 // locale. These will only be used in production, in dev the `defaultMessage` in
 // each message description in the source code will be used.
 const getMessages = locale => {
-  return require(`./lang/${locale}.json`);
+  try {
+    return require(`../lang/${locale}.json`);
+  } catch (err) {
+    // Failed to load messages
+    return require(`../lang/${DefaultLocale}.json`);
+  }
+
 };
 
 function setupIntl(req, dev) {
   const accept = accepts(req);
-  const parsedLocale = accept.language(languages) || DefaultLocale;
-  const locale = Array.isArray(parsedLocale) ? parsedLocale[0] : parsedLocale;
+  const localMatch = accept.language(languages) || DefaultLocale;
+  const bestLocaleMatch = Array.isArray(localMatch) ? localMatch[0] : localMatch;
+
+  // Use ?lang query param override if present
+  const locale = req.query.lang || bestLocaleMatch;
 
   req.locale = locale;
   req.localeDataScript = getLocaleDataScript(locale);
