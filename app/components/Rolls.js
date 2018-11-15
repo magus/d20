@@ -129,7 +129,7 @@ const UserRollContainer = styled.div`
 `;
 
 const RollsMask = styled.div`
-  background: linear-gradient(transparent, white 55%);
+  background: linear-gradient(transparent, white 75%);
   height: ${RollContainerHeight}px;
   width: 100%;
   position: absolute;
