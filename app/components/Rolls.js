@@ -41,11 +41,12 @@ function UserRolls({
   return (
     <UserRollContainer>
       <User identity={identity} />
-      <Rolls>
+      <Rolls rows={4}>
         {rolls.map(roll => (
           <Roll key={roll.id} roll={roll} />
         ))}
       </Rolls>
+      <RollsMask />
     </UserRollContainer>
   );
 }
@@ -84,16 +85,25 @@ export default ({
   );
 };
 
+const RollContainerHeight = 30;
+
 const Container = styled.div``;
 
 const Rolls = styled.div`
   margin: 0 0 8px 0;
+  max-height: calc(${RollContainerHeight}px * ${props => props.rows || 2});
+  overflow: scroll;
+  padding: 0 0 ${RollContainerHeight}px 0;
+
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-direction: column;
 `;
 
-const RollContainer = styled.div``;
+const RollContainer = styled.div`
+  min-height: ${RollContainerHeight}px;
+  display: flex;
+  align-items: center;
+`;
 
 const DieRollContainer = styled.div`
   margin: 0 12px 0 0;
@@ -112,7 +122,17 @@ const DieRollInfo = styled.span`
 `;
 
 const UserRollContainer = styled.div`
+  position: relative;
   border-top: 1px solid #eaeaea;
   padding: 8px 0 0 0;
   margin: 16px 0 0 0;
+`;
+
+const RollsMask = styled.div`
+  background: linear-gradient(transparent, white 55%);
+  height: ${RollContainerHeight}px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 `;
