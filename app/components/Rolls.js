@@ -108,14 +108,18 @@ const Rolls = styled.div`
 `;
 
 const RollContainer = styled.div`
+  position: relative;
+
   min-height: ${RollContainerHeight}px;
   max-height: ${RollContainerHeight}px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
 `;
 
 const RollTime = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
   font-size: 10px;
   font-weight: 100;
   align-self: flex-end;

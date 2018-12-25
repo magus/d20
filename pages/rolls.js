@@ -91,7 +91,7 @@ class WithSocketInfo extends React.Component<Props, State> {
     this._emitRoll = () => {
       const roll: RollEvent = {
         userId: this.props.socket.id,
-        dieRolls: [rollDie()],
+        dieRolls: [rollDie(), rollDie(6)],
         time: Date.now(),
         id: createGUID(),
       };
