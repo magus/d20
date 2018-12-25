@@ -3,228 +3,68 @@
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
-import { firstParent } from '~/app/utils/dom';
+import { $id, $set, $firstParent, $listen } from '~/app/utils/dom';
 
-function setupTeal() {
-  window.teal = {};
-  window.$t = window.teal;
+function getMouseCoords(event) {
+  const canvas = $firstParent(event.target, e => e.tagName === 'CANVAS');
+  const { top, left } = (canvas && canvas.getBoundingClientRect()) || {};
 
-  window.teal.copyto = function(obj, res) {
-    if (obj == null || typeof obj !== 'object') return obj;
-    if (obj instanceof Array) {
-      for (var i = obj.length - 1; i >= 0; --i) res[i] = $t.copy(obj[i]);
-    } else {
-      for (var i in obj) {
-        if (obj.hasOwnProperty(i)) res[i] = $t.copy(obj[i]);
-      }
-    }
-    return res;
-  };
+  var touches = event.changedTouches;
+  const ex = touches ? touches[0].clientX : event.clientX;
+  const ey = touches ? touches[0].clientY : event.clientY;
 
-  window.teal.copy = function(obj) {
-    if (!obj) return obj;
-    return window.teal.copyto(obj, new obj.constructor());
-  };
-
-  window.teal.element = function(name, props, place) {
-    var dom = document.createElement(name);
-    if (props) for (var i in props) dom.setAttribute(i, props[i]);
-    if (place) place.appendChild(dom);
-    return dom;
-  };
-
-  window.teal.inner = function(obj, sel) {
-    sel.appendChild(
-      typeof obj == 'string' ? document.createTextNode(obj) : obj
-    );
-  };
-
-  window.teal.id = function(id) {
-    return document.getElementById(id);
-  };
-
-  window.teal.set = function(sel, props) {
-    for (var i in props) sel.setAttribute(i, props[i]);
-    return sel;
-  };
-
-  window.teal.clas = function(sel, oldclass, newclass) {
-    var oc = oldclass ? oldclass.split(/\s+/) : [],
-      nc = newclass ? newclass.split(/\s+/) : [],
-      classes = (sel.getAttribute('class') || '').split(/\s+/);
-    if (!classes[0]) classes = [];
-    for (var i in oc) {
-      var ind = classes.indexOf(oc[i]);
-      if (ind >= 0) classes.splice(ind, 1);
-    }
-    for (var i in nc) {
-      if (nc[i] && classes.indexOf(nc[i]) < 0) classes.push(nc[i]);
-    }
-    sel.setAttribute('class', classes.join(' '));
-  };
-
-  window.teal.empty = function(sel) {
-    if (sel.childNodes)
-      while (sel.childNodes.length) sel.removeChild(sel.firstChild);
-  };
-
-  window.teal.remove = function(sel) {
-    if (sel) {
-      if (sel.parentNode) sel.parentNode.removeChild(sel);
-      else
-        for (var i = sel.length - 1; i >= 0; --i)
-          sel[i].parentNode.removeChild(sel[i]);
-    }
-  };
-
-  window.teal.bind = function(sel, eventname, func, bubble) {
-    if (eventname.constructor === Array) {
-      for (var i in eventname)
-        sel.addEventListener(eventname[i], func, bubble ? bubble : false);
-    } else sel.addEventListener(eventname, func, bubble ? bubble : false);
-  };
-
-  window.teal.unbind = function(sel, eventname, func, bubble) {
-    if (eventname.constructor === Array) {
-      for (var i in eventname)
-        sel.removeEventListener(eventname[i], func, bubble ? bubble : false);
-    } else sel.removeEventListener(eventname, func, bubble ? bubble : false);
-  };
-
-  window.teal.one = function(sel, eventname, func, bubble) {
-    var one_func = function(e) {
-      func.call(this, e);
-      window.teal.unbind(sel, eventname, one_func, bubble);
-    };
-    window.teal.bind(sel, eventname, one_func, bubble);
-  };
-
-  window.teal.raise_event = function(sel, eventname, bubble, cancelable) {
-    var evt = document.createEvent('UIEvents');
-    evt.initEvent(
-      eventname,
-      bubble == undefined ? true : bubble,
-      cancelable == undefined ? true : cancelable
-    );
-    sel.dispatchEvent(evt);
-  };
-
-  if (!document.getElementsByClassName) {
-    window.teal.get_elements_by_class = function(classes, node) {
-      var node = node || document,
-        list = node.getElementsByTagName('*'),
-        cl = classes.split(/\s+/),
-        result = [];
-
-      for (var i = list.length - 1; i >= 0; --i) {
-        for (var j = cl.length - 1; j >= 0; --j) {
-          var clas = list[i].getAttribute('class');
-          if (clas && clas.search('\\b' + cl[j] + '\\b') != -1) {
-            result.push(list[i]);
-            break;
-          }
-        }
-      }
-      return result;
-    };
-  } else {
-    window.teal.get_elements_by_class = function(classes, node) {
-      return (node || document).getElementsByClassName(classes);
-    };
-  }
-
-  window.teal.rpc = function(params, callback) {
-    var ajax = new XMLHttpRequest(),
-      ret;
-    ajax.open('post', 'f', true);
-    ajax.onreadystatechange = function() {
-      if (ajax.readyState == 4)
-        callback.call(ajax, JSON.parse(ajax.responseText));
-    };
-    ajax.send(JSON.stringify(params));
-  };
-
-  window.teal.uuid = function() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = (Math.random() * 16) | 0,
-        v = c == 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  };
-
-  window.teal.get_url_params = function() {
-    var params = window.location.search.substring(1).split('&');
-    var res = {};
-    for (var i in params) {
-      var keyvalue = params[i].split('=');
-      res[keyvalue[0]] = decodeURI(keyvalue[1]);
-    }
-    return res;
-  };
-
-  window.teal.get_mouse_coords = function(ev) {
-    const canvas = firstParent(ev.target, e => e.tagName === 'CANVAS');
-    const { top, left } = (canvas && canvas.getBoundingClientRect()) || {};
-
-    var touches = ev.changedTouches;
-    const ex = touches ? touches[0].clientX : ev.clientX;
-    const ey = touches ? touches[0].clientY : ev.clientY;
-
-    return {
-      x: ex - (left || 0),
-      y: ey - (top || 0),
-    };
+  return {
+    x: ex - (left || 0),
+    y: ey - (top || 0),
   };
 }
 
 export default function dice_initialize(container) {
-  // teal.js
-  setupTeal();
-
   // dice.js
-  window.teal.dice = window.teal.dice || {};
-  setupDice.apply(window.teal.dice);
+  const DICE_CONTEXT = {};
+  setupDice.apply(DICE_CONTEXT);
 
-  $t.remove($t.id('loading_text'));
+  const loadingText = $id('loading_text');
+  loadingText.parentNode.removeChild(loadingText);
 
-  var canvas = $t.id('canvas');
+  var canvas = $id('canvas');
   canvas.style.width = window.innerWidth - 1 + 'px';
   canvas.style.height = window.innerHeight - 1 + 'px';
-  var label = $t.id('label');
-  var set = $t.id('set');
-  var selector_div = $t.id('selector_div');
-  var info_div = $t.id('info_div');
+  var label = $id('label');
+  var set = $id('set');
+  var selector_div = $id('selector_div');
+  var info_div = $id('info_div');
   on_set_change();
 
-  $t.dice.use_true_random = false;
+  DICE_CONTEXT.use_true_random = false;
 
   function on_set_change(ev) {
     set.style.width = set.value.length + 3 + 'ex';
   }
-  $t.bind(set, 'keyup', on_set_change);
-  $t.bind(set, 'mousedown', function(ev) {
+  $listen(set, 'keyup', on_set_change);
+  $listen(set, 'mousedown', function(ev) {
     ev.stopPropagation();
   });
-  $t.bind(set, 'mouseup', function(ev) {
+  $listen(set, 'mouseup', function(ev) {
     ev.stopPropagation();
   });
-  $t.bind(set, 'focus', function(ev) {
-    $t.set(container, { class: '' });
+  $listen(set, 'focus', function(ev) {
+    $set(container, { class: '' });
   });
-  $t.bind(set, 'blur', function(ev) {
-    $t.set(container, { class: 'noselect' });
+  $listen(set, 'blur', function(ev) {
+    $set(container, { class: 'noselect' });
   });
 
-  $t.bind($t.id('clear'), ['mouseup', 'touchend'], function(ev) {
+  $listen($id('clear'), 'mouseup touchend', function(ev) {
     ev.stopPropagation();
     set.value = '0';
     on_set_change();
   });
 
-  var box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
+  var box = new DICE_CONTEXT.dice_box(canvas, { w: 500, h: 300 });
   box.animate_selector = false;
 
-  $t.bind(window, 'resize', function() {
+  $listen(window, 'resize', function() {
     canvas.style.width = window.innerWidth - 1 + 'px';
     canvas.style.height = window.innerHeight - 1 + 'px';
     box.reinit(canvas, { w: 500, h: 300 });
@@ -246,7 +86,7 @@ export default function dice_initialize(container) {
   }
 
   function notation_getter() {
-    return $t.dice.parse_notation(set.value);
+    return DICE_CONTEXT.parse_notation(set.value);
   }
 
   function after_roll(notation, result) {
@@ -264,9 +104,9 @@ export default function dice_initialize(container) {
   }
 
   box.bind_mouse(container, notation_getter, before_roll, after_roll);
-  box.bind_throw($t.id('throw'), notation_getter, before_roll, after_roll);
+  box.bind_throw($id('throw'), notation_getter, before_roll, after_roll);
 
-  $t.bind(container, ['mouseup'], function(ev) {
+  $listen(container, 'mouseup', function(ev) {
     ev.stopPropagation();
     if (selector_div.style.display == 'none') {
       if (!box.rolling) show_selector();
@@ -275,22 +115,14 @@ export default function dice_initialize(container) {
     }
     var name = box.search_dice_by_mouse(ev);
     if (name != undefined) {
-      var notation = $t.dice.parse_notation(set.value);
+      var notation = DICE_CONTEXT.parse_notation(set.value);
       notation.set.push(name);
-      set.value = $t.dice.stringify_notation(notation);
+      set.value = DICE_CONTEXT.stringify_notation(notation);
       on_set_change();
     }
   });
 
-  var params = $t.get_url_params();
-  if (params.notation) {
-    set.value = params.notation;
-  }
-  if (params.roll) {
-    $t.raise_event($t.id('throw'), 'mouseup');
-  } else {
-    show_selector();
-  }
+  show_selector();
 }
 
 function setupDice() {
@@ -298,22 +130,7 @@ function setupDice() {
   this.use_true_random = true;
   this.frame_rate = 1 / 60;
 
-  function prepare_rnd(callback) {
-    if (!random_storage.length && $t.dice.use_true_random) {
-      try {
-        $t.rpc({ method: 'random', n: 512 }, function(random_responce) {
-          if (!random_responce.error)
-            random_storage = random_responce.result.random.data;
-          else $t.dice.use_true_random = false;
-          callback();
-        });
-        return;
-      } catch (e) {
-        $t.dice.use_true_random = false;
-      }
-    }
-    callback();
-  }
+  const that = this;
 
   function rnd() {
     return random_storage.length ? random_storage.pop() : Math.random();
@@ -527,15 +344,14 @@ function setupDice() {
     var materials = [];
     for (var i = 0; i < face_labels.length; ++i)
       materials.push(
-        new THREE.MeshPhongMaterial(
-          $t.copyto(this.material_options, {
-            map: create_text_texture(
-              face_labels[i],
-              this.label_color,
-              this.dice_color
-            ),
-          })
-        )
+        new THREE.MeshPhongMaterial({
+          map: create_text_texture(
+            face_labels[i],
+            this.label_color,
+            this.dice_color
+          ),
+          ...this.material_options,
+        })
       );
     return materials;
   };
@@ -570,11 +386,10 @@ function setupDice() {
     var labels = [[], [0, 0, 0], [2, 4, 3], [1, 3, 4], [2, 1, 4], [1, 2, 3]];
     for (var i = 0; i < labels.length; ++i)
       materials.push(
-        new THREE.MeshPhongMaterial(
-          $t.copyto(this.material_options, {
-            map: create_d4_text(labels[i], this.label_color, this.dice_color),
-          })
-        )
+        new THREE.MeshPhongMaterial({
+          map: create_d4_text(labels[i], this.label_color, this.dice_color),
+          ...this.material_options,
+        })
       );
     return materials;
   };
@@ -930,8 +745,6 @@ function setupDice() {
     if (nn.constant) notation += ' + ' + nn.constant;
     return notation;
   };
-
-  var that = this;
 
   this.dice_box = function(container, dimentions) {
     this.use_adapvite_timestep = true;
@@ -1359,7 +1172,7 @@ function setupDice() {
   };
 
   this.dice_box.prototype.search_dice_by_mouse = function(ev) {
-    var m = $t.get_mouse_coords(ev);
+    var m = getMouseCoords(ev);
     var intersects = new THREE.Raycaster(
       this.camera.position,
       new THREE.Vector3(
@@ -1387,7 +1200,7 @@ function setupDice() {
     var mouse_captured = false;
 
     for (var i = 0, pos = -3; i < that.known_types.length; ++i, ++pos) {
-      var dice = $t.dice['create_' + that.known_types[i]]();
+      var dice = that['create_' + that.known_types[i]]();
       dice.position.set(pos * step, 0, step * 0.5);
       dice.castShadow = true;
       dice.userData = that.known_types[i];
@@ -1401,7 +1214,7 @@ function setupDice() {
     else this.renderer.render(this.scene, this.camera);
   };
 
-  function throw_dices(
+  const throw_dices = (
     box,
     vector,
     boost,
@@ -1409,15 +1222,15 @@ function setupDice() {
     notation_getter,
     before_roll,
     after_roll
-  ) {
-    var uat = $t.dice.use_adapvite_timestep;
+  ) => {
+    var uat = this.use_adapvite_timestep;
     function roll(request_results) {
       if (after_roll) {
         box.clear();
         box.roll(vectors, request_results || notation.result, function(result) {
           if (after_roll) after_roll.call(box, notation, result);
           box.rolling = false;
-          $t.dice.use_adapvite_timestep = uat;
+          this.use_adapvite_timestep = uat;
         });
       }
     }
@@ -1438,16 +1251,16 @@ function setupDice() {
     after_roll
   ) {
     var box = this;
-    $t.bind(container, ['mousedown', 'touchstart'], function(ev) {
+    $listen(container, 'mousedown touchstart', function(ev) {
       ev.preventDefault();
       box.mouse_time = new Date().getTime();
-      box.mouse_start = $t.get_mouse_coords(ev);
+      box.mouse_start = getMouseCoords(ev);
     });
-    $t.bind(container, ['mouseup', 'touchend'], function(ev) {
+    $listen(container, 'mouseup touchend', function(ev) {
       if (box.rolling) return;
       if (box.mouse_start == undefined) return;
       ev.stopPropagation();
-      var m = $t.get_mouse_coords(ev);
+      var m = getMouseCoords(ev);
       var vector = {
         x: m.x - box.mouse_start.x,
         y: -(m.y - box.mouse_start.y),
@@ -1458,17 +1271,16 @@ function setupDice() {
       var time_int = new Date().getTime() - box.mouse_time;
       if (time_int > 2000) time_int = 2000;
       var boost = Math.sqrt((2500 - time_int) / 2500) * dist * 2;
-      prepare_rnd(function() {
-        throw_dices(
-          box,
-          vector,
-          boost,
-          dist,
-          notation_getter,
-          before_roll,
-          after_roll
-        );
-      });
+
+      throw_dices(
+        box,
+        vector,
+        boost,
+        dist,
+        notation_getter,
+        before_roll,
+        after_roll
+      );
     });
   };
 
@@ -1479,7 +1291,7 @@ function setupDice() {
     after_roll
   ) {
     var box = this;
-    $t.bind(button, ['mouseup', 'touchend'], function(ev) {
+    $listen(button, 'mouseup touchend', function(ev) {
       ev.stopPropagation();
       box.start_throw(notation_getter, before_roll, after_roll);
     });
@@ -1492,19 +1304,19 @@ function setupDice() {
   ) {
     var box = this;
     if (box.rolling) return;
-    prepare_rnd(function() {
-      var vector = { x: (rnd() * 2 - 1) * box.w, y: -(rnd() * 2 - 1) * box.h };
-      var dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
-      var boost = (rnd() + 3) * dist;
-      throw_dices(
-        box,
-        vector,
-        boost,
-        dist,
-        notation_getter,
-        before_roll,
-        after_roll
-      );
-    });
+
+    var vector = { x: (rnd() * 2 - 1) * box.w, y: -(rnd() * 2 - 1) * box.h };
+    var dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+    var boost = (rnd() + 3) * dist;
+
+    throw_dices(
+      box,
+      vector,
+      boost,
+      dist,
+      notation_getter,
+      before_roll,
+      after_roll
+    );
   };
 }
