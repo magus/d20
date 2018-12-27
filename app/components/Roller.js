@@ -31,7 +31,7 @@ function dice_initialize(container) {
   const label = $id('label');
   const set = $id('set');
   const selector_div = $id('selector_div');
-  const info_div = $id('info_div');
+
   on_set_change();
 
   DICE_CONTEXT.use_true_random = false;
@@ -70,13 +70,11 @@ function dice_initialize(container) {
   });
 
   function show_selector() {
-    info_div.style.display = 'none';
     selector_div.style.display = 'inline-block';
     box.draw_selector();
   }
 
   function before_roll(vectors, notation, callback) {
-    info_div.style.display = 'none';
     selector_div.style.display = 'none';
     // do here rpc call or whatever to get your own result of throw.
     // then callback with array of your result, example:
@@ -99,7 +97,6 @@ function dice_initialize(container) {
         }) +
           notation.constant);
     label.innerHTML = res;
-    info_div.style.display = 'inline-block';
   }
 
   box.bind_mouse(container, notation_getter, before_roll, after_roll);
@@ -1361,18 +1358,10 @@ export default class Roller extends React.Component {
       <div>
         <CanvasContainer id="canvas" />
 
-        <div id="info_div" style={{ display: 'none' }}>
-          <div className="center_field">
-            <span id="label" />
-          </div>
-          <div className="center_field">
-            <div className="bottom_field">
-              <span id="labelhelp">
-                click to continue or tap and drag again
-              </span>
-            </div>
-          </div>
+        <div className="center_field">
+          <span id="label" />
         </div>
+
         <div id="selector_div" style={{ display: 'none' }}>
           <div className="center_field">
             <div id="sethelp">
