@@ -500,11 +500,13 @@ export const DiceBuilder = {
 
   create_d8: function() {
     if (!this.d8_geometry) this.d8_geometry = create_d8_geometry(SCALE);
-    if (!this.dice_material)
-      this.dice_material = new THREE.MeshFaceMaterial(
+    if (!this.d8_material) {
+      this.d8_material = new THREE.MeshFaceMaterial(
         create_dice_materials(standart_d20_dice_face_labels, SCALE / 2, 1.2)
       );
-    return new THREE.Mesh(this.d8_geometry, this.dice_material);
+    }
+
+    return new THREE.Mesh(this.d8_geometry, this.d8_material);
   },
 
   create_d10: function() {
