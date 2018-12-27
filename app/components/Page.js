@@ -13,8 +13,6 @@ export default ({ children }: Props) => (
 );
 
 const Container = styled.div`
-  background-color: #FFF;
   color: #000;
-
   margin: 20px;
 `;

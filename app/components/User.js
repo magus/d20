@@ -25,6 +25,6 @@ const Username = styled.div`
   margin: 0 4px 4px 0;
   display: inline-block;
 
-  background: ${props => (props.inactive ? '#999' : 'initial')};
+  background: ${props => (props.inactive ? '#999' : '#FFF')};
   opacity: ${props => (props.inactive ? '0.4' : 'initial')};
 `;
