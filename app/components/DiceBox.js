@@ -22,11 +22,11 @@ const frame_rate = 1 / 60;
 const ambient_light_color = 0xf0f5fb;
 const spot_light_color = 0xefdfd5;
 const selector_back_colors = {
-  color: 0x404040,
+  color: 0xffffff,
   shininess: 0,
-  emissive: 0x858787,
+  emissive: 0x000000,
 };
-const desk_color = 0xdfdfdf;
+const desk_color = 0xffffff;
 const dice_face_range = {
   d4: [1, 4],
   d6: [1, 6],
