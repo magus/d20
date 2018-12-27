@@ -225,27 +225,29 @@ function calc_texture_size(approx) {
   return Math.pow(2, Math.floor(Math.log(approx) / Math.log(2)));
 }
 
-const create_dice_materials = function(face_labels, size, margin) {
-  function create_text_texture(text, color, back_color) {
-    if (text == undefined) return null;
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    var ts = calc_texture_size(size + size * 2 * margin) * 2;
-    canvas.width = canvas.height = ts;
-    context.font = ts / (1 + 2 * margin) + 'pt Arial';
-    context.fillStyle = back_color;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillStyle = color;
-    context.fillText(text, canvas.width / 2, canvas.height / 2);
-    if (text == '6' || text == '9') {
-      context.fillText('  .', canvas.width / 2, canvas.height / 2);
-    }
-    var texture = new THREE.Texture(canvas);
-    texture.needsUpdate = true;
-    return texture;
+function create_text_texture(text, color, back_color, size, margin) {
+  if (text == undefined) return null;
+
+  var canvas = document.createElement('canvas');
+  var context = canvas.getContext('2d');
+  var ts = calc_texture_size(size + size * 2 * margin) * 2;
+  canvas.width = canvas.height = ts;
+  context.font = ts / (1 + 2 * margin) + 'pt Arial';
+  context.fillStyle = back_color;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillStyle = color;
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  if (text == '6' || text == '9') {
+    context.fillText('  .', canvas.width / 2, canvas.height / 2);
   }
+  var texture = new THREE.Texture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+const create_dice_materials = function(face_labels, size, margin) {
   var materials = [];
   for (var i = 0; i < face_labels.length; ++i)
     materials.push(
@@ -253,7 +255,9 @@ const create_dice_materials = function(face_labels, size, margin) {
         map: create_text_texture(
           face_labels[i],
           label_color,
-          dice_color
+          dice_color,
+          size,
+          margin
         ),
         ...material_options,
       })
@@ -278,7 +282,11 @@ const create_d4_materials = function() {
     context.fillStyle = color;
 
     digits.forEach(digit => {
-      context.fillText(`${digit}`, canvas.width / 2, canvas.height / 2 - ts * 0.3);
+      context.fillText(
+        `${digit}`,
+        canvas.width / 2,
+        canvas.height / 2 - ts * 0.3
+      );
       context.translate(canvas.width / 2, canvas.height / 2);
       context.rotate((Math.PI * 2) / 3);
       context.translate(-canvas.width / 2, -canvas.height / 2);
@@ -475,25 +483,17 @@ const create_d20_geometry = function(radius) {
 
 export const DiceBuilder = {
   create_d4: function() {
-    if (!this.d4_geometry)
-      this.d4_geometry = create_d4_geometry(SCALE * 1.2);
+    if (!this.d4_geometry) this.d4_geometry = create_d4_geometry(SCALE * 1.2);
     if (!this.d4_material)
-      this.d4_material = new THREE.MeshFaceMaterial(
-        create_d4_materials()
-      );
+      this.d4_material = new THREE.MeshFaceMaterial(create_d4_materials());
     return new THREE.Mesh(this.d4_geometry, this.d4_material);
   },
 
   create_d6: function() {
-    if (!this.d6_geometry)
-      this.d6_geometry = create_d6_geometry(SCALE * 0.9);
+    if (!this.d6_geometry) this.d6_geometry = create_d6_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
-        create_dice_materials(
-          standart_d20_dice_face_labels,
-          SCALE / 2,
-          1.0
-        )
+        create_dice_materials(standart_d20_dice_face_labels, SCALE / 2, 1.0)
       );
     return new THREE.Mesh(this.d6_geometry, this.dice_material);
   },
@@ -502,11 +502,7 @@ export const DiceBuilder = {
     if (!this.d8_geometry) this.d8_geometry = create_d8_geometry(SCALE);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
-        create_dice_materials(
-          standart_d20_dice_face_labels,
-          SCALE / 2,
-          1.2
-        )
+        create_dice_materials(standart_d20_dice_face_labels, SCALE / 2, 1.2)
       );
     return new THREE.Mesh(this.d8_geometry, this.dice_material);
   },
@@ -516,11 +512,7 @@ export const DiceBuilder = {
       this.d10_geometry = create_d10_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
-        create_dice_materials(
-          standart_d20_dice_face_labels,
-          SCALE / 2,
-          1.0
-        )
+        create_dice_materials(standart_d20_dice_face_labels, SCALE / 2, 1.0)
       );
     return new THREE.Mesh(this.d10_geometry, this.dice_material);
   },
@@ -530,25 +522,16 @@ export const DiceBuilder = {
       this.d12_geometry = create_d12_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
-        create_dice_materials(
-          standart_d20_dice_face_labels,
-          SCALE / 2,
-          1.0
-        )
+        create_dice_materials(standart_d20_dice_face_labels, SCALE / 2, 1.0)
       );
     return new THREE.Mesh(this.d12_geometry, this.dice_material);
   },
 
   create_d20: function() {
-    if (!this.d20_geometry)
-      this.d20_geometry = create_d20_geometry(SCALE);
+    if (!this.d20_geometry) this.d20_geometry = create_d20_geometry(SCALE);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
-        create_dice_materials(
-          standart_d20_dice_face_labels,
-          SCALE / 2,
-          1.0
-        )
+        create_dice_materials(standart_d20_dice_face_labels, SCALE / 2, 1.0)
       );
     return new THREE.Mesh(this.d20_geometry, this.dice_material);
   },
@@ -558,11 +541,7 @@ export const DiceBuilder = {
       this.d10_geometry = create_d10_geometry(SCALE * 0.9);
     if (!this.d100_material)
       this.d100_material = new THREE.MeshFaceMaterial(
-        create_dice_materials(
-          standart_d100_dice_face_labels,
-          SCALE / 2,
-          1.5
-        )
+        create_dice_materials(standart_d100_dice_face_labels, SCALE / 2, 1.5)
       );
     return new THREE.Mesh(this.d10_geometry, this.d100_material);
   },
