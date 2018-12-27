@@ -552,7 +552,6 @@ DiceBox.prototype.bind_mouse = function(
 ) {
   var box = this;
   $listen(container, 'mousedown touchstart', function(ev) {
-    ev.preventDefault();
     box.mouse_time = new Date().getTime();
     box.mouse_start = getMouseCoords(ev);
   });
