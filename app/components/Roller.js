@@ -5,7 +5,7 @@ import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
 import { $id, $set, $listen } from '~/app/utils/dom';
 
-const stringify_notation = function(notation) {
+const stringifyNotation = function(notation) {
   const dict = {};
 
   let output = '';
@@ -64,7 +64,7 @@ const parseNotation = function(notation) {
   return ret;
 };
 
-function dice_initialize(container) {
+function onMount(container) {
   const canvas = $id('canvas');
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
@@ -73,13 +73,13 @@ function dice_initialize(container) {
   const set = $id('set');
   const selectorDiv = $id('selectorDiv');
 
-  on_set_change();
+  handleSetChange();
 
-  function on_set_change() {
+  function handleSetChange() {
     set.style.width = set.value.length + 3 + 'ex';
   }
 
-  $listen(set, 'keyup', on_set_change);
+  $listen(set, 'keyup', handleSetChange);
   $listen(set, 'mousedown', function(ev) {
     ev.stopPropagation();
   });
@@ -96,7 +96,7 @@ function dice_initialize(container) {
   $listen($id('clear'), 'mouseup touchend', function(ev) {
     ev.stopPropagation();
     set.value = '0';
-    on_set_change();
+    handleSetChange();
   });
 
   const box = new DiceBox(canvas, { w: 500, h: 300 });
@@ -107,12 +107,12 @@ function dice_initialize(container) {
     box.setupContainer(canvas, { w: 500, h: 300 });
   });
 
-  function show_selector() {
+  function showSelector() {
     selectorDiv.style.display = 'inline-block';
     box.showSelector();
   }
 
-  function before_roll(vectors, notation, callback) {
+  function onBeforeRoll(vectors, notation, callback) {
     selectorDiv.style.display = 'none';
 
     // Force a roll result
@@ -138,14 +138,14 @@ function dice_initialize(container) {
     label.innerHTML = res;
   }
 
-  box.bindMouse(container, getNotation, before_roll, onAfterRoll);
-  box.bindThrow($id('throw'), getNotation, before_roll, onAfterRoll);
+  box.bindMouse(container, getNotation, onBeforeRoll, onAfterRoll);
+  box.bindThrow($id('throw'), getNotation, onBeforeRoll, onAfterRoll);
 
   $listen(container, 'mouseup', function(ev) {
     ev.stopPropagation();
 
     if (selectorDiv.style.display === 'none') {
-      if (!box.rolling) show_selector();
+      if (!box.rolling) showSelector();
       box.rolling = false;
       return;
     }
@@ -154,18 +154,18 @@ function dice_initialize(container) {
     if (name !== undefined) {
       const notation = getNotation();
       notation.dice.push(name);
-      set.value = stringify_notation(notation);
-      on_set_change();
+      set.value = stringifyNotation(notation);
+      handleSetChange();
     }
   });
 
-  show_selector();
+  showSelector();
 }
 
 export default class Roller extends React.Component {
   componentDidMount() {
     // Initialize 3d roller
-    dice_initialize(document.body);
+    onMount(document.body);
   }
 
   render() {
