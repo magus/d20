@@ -26,15 +26,14 @@ function dice_initialize(container) {
   setupDice.apply(DICE_CONTEXT);
 
   const canvas = $id('canvas');
-  canvas.style.width = window.innerWidth - 1 + 'px';
-  canvas.style.height = window.innerHeight - 1 + 'px';
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+
   const label = $id('label');
   const set = $id('set');
   const selector_div = $id('selector_div');
 
   on_set_change();
-
-  DICE_CONTEXT.use_true_random = false;
 
   function on_set_change() {
     set.style.width = set.value.length + 3 + 'ex';
@@ -122,7 +121,6 @@ function dice_initialize(container) {
 }
 
 function setupDice() {
-  this.use_true_random = true;
   this.frame_rate = 1 / 60;
 
   const that = this;
