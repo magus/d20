@@ -126,16 +126,7 @@ function onMount(container) {
   }
 
   function onAfterRoll(notation, result) {
-    let res = result.join(' ');
-    if (notation.constant) res += ' +' + notation.constant;
-    if (result.length > 1)
-      res +=
-        ' = ' +
-        (result.reduce(function(s, a) {
-          return s + a;
-        }) +
-          notation.constant);
-    label.innerHTML = res;
+    console.debug('onAfterRoll', { notation, result });
   }
 
   box.bindMouse(container, getNotation, onBeforeRoll, onAfterRoll);
@@ -179,15 +170,7 @@ export default class Roller extends React.Component {
 
         <div id="selectorDiv" style={{ display: 'none' }}>
           <div className="center_field">
-            <div id="sethelp">
-              choose your dice set by clicking the dices or by direct input of
-              notation,
-              <br />
-              tap and drag on free space of screen or hit throw button to roll
-            </div>
-          </div>
-          <div className="center_field">
-            <input type="text" id="set" value="4d6" />
+            <input type="text" id="set" value="d20" />
             <br />
             <button id="clear">clear</button>
             <button style={{ marginLeft: '0.6em' }} id="throw">
