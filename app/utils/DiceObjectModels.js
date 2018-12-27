@@ -1,4 +1,6 @@
 // @flow
+import type { Dice } from '~/app/utils/DICE';
+
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
@@ -55,11 +57,11 @@ const D100_FACES = [
   '90',
 ];
 
-function readDice(dice: any) {
-  const vector = new THREE.Vector3(0, 0, dice.dice_type === 'd4' ? -1 : 1);
+function readDice(dice: Dice) {
+  const vector = new THREE.Vector3(0, 0, dice.type === 'd4' ? -1 : 1);
 
-  let closest_face;
-  let closest_angle = Math.PI * 2;
+  let closestFace;
+  let closestAngle = Math.PI * 2;
   for (let i = 0, l = dice.geometry.faces.length; i < l; ++i) {
     const face = dice.geometry.faces[i];
 
@@ -70,21 +72,21 @@ function readDice(dice: any) {
       .applyQuaternion(dice.body.quaternion)
       .angleTo(vector);
 
-    if (angle < closest_angle) {
-      closest_angle = angle;
-      closest_face = face;
+    if (angle < closestAngle) {
+      closestAngle = angle;
+      closestFace = face;
     }
   }
 
-  if (!closest_face) throw new Error('unable to find closest face');
+  if (!closestFace) throw new Error('unable to find closest face');
 
-  let matindex = closest_face.materialIndex - 1;
-  if (dice.dice_type === 'd100') matindex *= 10;
+  let matindex = closestFace.materialIndex - 1;
+  if (dice.type === 'd100') matindex *= 10;
 
   return matindex;
 }
 
-export function readDices(dices: any[]) {
+export function readDices(dices: Dice[]) {
   const values = [];
 
   for (let i = 0, l = dices.length; i < l; ++i) {
@@ -94,8 +96,8 @@ export function readDices(dices: any[]) {
   return values;
 }
 
-export function shiftDiceFaces(dice: any, value: number, res: number) {
-  const r = DICE.Range[dice.dice_type];
+export function shiftDiceFaces(dice: Dice, value: number, res: number) {
+  const r = DICE.Range[dice.type];
 
   if (!(value >= r[0] && value <= r[1])) return;
 
@@ -542,7 +544,8 @@ const create_d20_geometry = function(radius) {
   return create_geom(vertices, faces, radius, -0.2, -Math.PI / 4 / 2, 0.955);
 };
 
-export const DiceBuilder = {
+// TODO: Properly type this out and centralize cache
+export const DiceBuilder: any = {
   [DICE.Type.d4]: function() {
     if (!this.d4_geometry) this.d4_geometry = create_d4_geometry(SCALE * 1.2);
     if (!this.d4_material)

@@ -8,7 +8,10 @@ export function $set(sel: Element, props: { [attr: string]: any }) {
   return sel;
 }
 
-export function $firstParent(element?: Element, check: any => boolean): ?Element {
+export function $firstParent(
+  element?: Element,
+  check: any => boolean
+): ?Element {
   if (check(element)) return element;
   if (!element) return element;
 
@@ -44,13 +47,12 @@ export function $event(
   element.dispatchEvent(evt);
 }
 
-
 type InteractEventType = {
   target: HTMLElement,
   changedTouches: ?TouchList,
   clientX?: number,
   clientY?: number,
-} & (MouseEvent | TouchEvent)
+} & (MouseEvent | TouchEvent);
 
 export function $canvasMouseCoords(event: InteractEventType) {
   const coords = { x: 0, y: 0 };
@@ -65,7 +67,13 @@ export function $canvasMouseCoords(event: InteractEventType) {
   const ey = touches ? touches[0].clientY : event.clientY;
 
   // return if undefined
-  if (left === undefined || top === undefined || ex === undefined || ey === undefined) return coords;
+  if (
+    left === undefined ||
+    top === undefined ||
+    ex === undefined ||
+    ey === undefined
+  )
+    return coords;
 
   coords.x = ex - left;
   coords.y = ey - top;

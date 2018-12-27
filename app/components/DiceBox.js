@@ -6,7 +6,11 @@ import DICE from '~/app/utils/DICE';
 import rand from '~/app/utils/rand';
 import { $listen, $canvasMouseCoords } from '~/app/utils/dom';
 import { randVector } from '~/app/utils/geometry';
-import { DiceBuilder, readDices, shiftDiceFaces } from '~/app/utils/threeDice';
+import {
+  DiceBuilder,
+  readDices,
+  shiftDiceFaces,
+} from '~/app/utils/DiceObjectModels';
 
 const FPS = 1 / 60;
 
@@ -46,7 +50,7 @@ export default function DiceBox(
   dimensions: { w: number, h: number }
 ) {
   this.useAdaptiveTimestep = true;
-  this.animate_selector = true;
+  this.animateSelector = true;
 
   this.dices = [];
   this.scene = new THREE.Scene();
@@ -77,35 +81,18 @@ export default function DiceBox(
   const barrierMaterial = new CANNON.Material();
 
   this.world.addContactMaterial(
-    new CANNON.ContactMaterial(
-      deskMaterial,
-      this.diceMaterial,
-      0.01,
-      0.5
-    )
+    new CANNON.ContactMaterial(deskMaterial, this.diceMaterial, 0.01, 0.5)
   );
 
   this.world.addContactMaterial(
-    new CANNON.ContactMaterial(
-      barrierMaterial,
-      this.diceMaterial,
-      0,
-      1.0
-    )
+    new CANNON.ContactMaterial(barrierMaterial, this.diceMaterial, 0, 1.0)
   );
 
   this.world.addContactMaterial(
-    new CANNON.ContactMaterial(
-      this.diceMaterial,
-      this.diceMaterial,
-      0,
-      0.5
-    )
+    new CANNON.ContactMaterial(this.diceMaterial, this.diceMaterial, 0, 0.5)
   );
 
-  this.world.add(
-    new CANNON.RigidBody(0, new CANNON.Plane(), deskMaterial)
-  );
+  this.world.add(new CANNON.RigidBody(0, new CANNON.Plane(), deskMaterial));
 
   // Setup desk barriers (prevent dice going off desk)
   let barrier;
@@ -208,11 +195,11 @@ DiceBox.prototype.setupContainer = function(container, dimensions) {
   this.renderer.render(this.scene, this.camera);
 };
 
-DiceBox.prototype.generate_vectors = function(notation, vector, boost) {
+DiceBox.prototype.generateVectors = function(notation, vector, boost) {
   const vectors = [];
 
-  for (let i in notation.set) {
-    const set = notation.set[i];
+  for (let i in notation.dice) {
+    const dice = notation.dice[i];
     const vec = randVector(vector);
     const pos = {
       x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
@@ -226,7 +213,7 @@ DiceBox.prototype.generate_vectors = function(notation, vector, boost) {
 
     const velvec = randVector(vector);
     const velocity = { x: velvec.x * boost, y: velvec.y * boost, z: -10 };
-    const inertia = DICE_INERTIA[set];
+    const inertia = DICE_INERTIA[dice];
     const angle = {
       x: -(rand() * vec.y * 5 + inertia * vec.y),
       y: rand() * vec.x * 5 + inertia * vec.x,
@@ -235,7 +222,7 @@ DiceBox.prototype.generate_vectors = function(notation, vector, boost) {
     const axis = { x: rand(), y: rand(), z: rand(), a: rand() };
 
     vectors.push({
-      set,
+      dice,
       pos,
       velocity,
       angle,
@@ -246,10 +233,12 @@ DiceBox.prototype.generate_vectors = function(notation, vector, boost) {
   return vectors;
 };
 
-DiceBox.prototype.create_dice = function(type, pos, velocity, angle, axis) {
-  var dice = DiceBuilder[type]();
+DiceBox.prototype.createDice = function(type, pos, velocity, angle, axis) {
+  const dice = DiceBuilder[type]();
+
   dice.castShadow = true;
-  dice.dice_type = type;
+  dice.type = type;
+
   dice.body = new CANNON.RigidBody(
     DICE_MASS[type],
     dice.geometry.cannon_shape,
@@ -264,20 +253,25 @@ DiceBox.prototype.create_dice = function(type, pos, velocity, angle, axis) {
   dice.body.velocity.set(velocity.x, velocity.y, velocity.z);
   dice.body.linearDamping = 0.1;
   dice.body.angularDamping = 0.1;
-  this.scene.add(dice);
+
   this.dices.push(dice);
+
+  this.scene.add(dice);
   this.world.add(dice.body);
 };
 
-DiceBox.prototype.check_if_throw_finished = function() {
-  var res = true;
-  var e = 6;
+DiceBox.prototype.checkIfThrowFinished = function() {
+  let done = true;
+  const e = 6;
+
   if (this.iteration < 10 / FPS) {
-    for (var i = 0; i < this.dices.length; ++i) {
-      var dice = this.dices[i];
-      if (dice.dice_stopped === true) continue;
-      var a = dice.body.angularVelocity,
-        v = dice.body.velocity;
+    for (let i = 0; i < this.dices.length; ++i) {
+      const dice = this.dices[i];
+
+      if (dice.diceStopped === true) continue;
+
+      const a = dice.body.angularVelocity;
+      const v = dice.body.velocity;
       if (
         Math.abs(a.x) < e &&
         Math.abs(a.y) < e &&
@@ -286,24 +280,28 @@ DiceBox.prototype.check_if_throw_finished = function() {
         Math.abs(v.y) < e &&
         Math.abs(v.z) < e
       ) {
-        if (dice.dice_stopped) {
-          if (this.iteration - dice.dice_stopped > 3) {
-            dice.dice_stopped = true;
+        if (dice.diceStopped) {
+          if (this.iteration - dice.diceStopped > 3) {
+            dice.diceStopped = true;
             continue;
           }
-        } else dice.dice_stopped = this.iteration;
-        res = false;
+        } else {
+          dice.diceStopped = this.iteration;
+        }
+
+        done = false;
       } else {
-        dice.dice_stopped = undefined;
-        res = false;
+        dice.diceStopped = undefined;
+        done = false;
       }
     }
   }
-  return res;
+
+  return done;
 };
 
-DiceBox.prototype.emulate_throw = function() {
-  while (!this.check_if_throw_finished()) {
+DiceBox.prototype.emulateThrow = function() {
+  while (!this.checkIfThrowFinished()) {
     ++this.iteration;
     this.world.step(FPS);
   }
@@ -311,18 +309,20 @@ DiceBox.prototype.emulate_throw = function() {
 };
 
 DiceBox.prototype.__animate = function(threadId) {
-  var time = new Date().getTime();
-  var time_diff = (time - this.lastTime) / 1000;
-  if (time_diff > 3) time_diff = FPS;
+  const now = new Date().getTime();
+  let timeDiff = (now - this.lastTime) / 1000;
+
+  if (timeDiff > 3) timeDiff = FPS;
+
   ++this.iteration;
 
   try {
     if (this.useAdaptiveTimestep) {
-      while (time_diff > FPS * 1.1) {
+      while (timeDiff > FPS * 1.1) {
         this.world.step(FPS);
-        time_diff -= FPS;
+        timeDiff -= FPS;
       }
-      this.world.step(time_diff);
+      this.world.step(timeDiff);
     } else {
       this.world.step(FPS);
     }
@@ -330,27 +330,30 @@ DiceBox.prototype.__animate = function(threadId) {
     console.error(err);
   }
 
-  for (var i in this.scene.children) {
-    var interact = this.scene.children[i];
+  for (let i in this.scene.children) {
+    const interact = this.scene.children[i];
     if (interact.body !== undefined) {
       interact.position.copy(interact.body.position);
       interact.quaternion.copy(interact.body.quaternion);
     }
   }
+
+  this.lastTime = now;
   this.renderer.render(this.scene, this.camera);
-  this.lastTime = this.lastTime ? time : new Date().getTime();
-  if (this.running === threadId && this.check_if_throw_finished()) {
+
+  if (this.running === threadId && this.checkIfThrowFinished()) {
     this.running = false;
     if (this.callback) this.callback.call(this, readDices(this.dices));
   }
+
   if (this.running === threadId) {
     (function(t, tid, uat) {
-      if (!uat && time_diff < FPS) {
+      if (!uat && timeDiff < FPS) {
         setTimeout(function() {
           requestAnimationFrame(function() {
             t.__animate(tid);
           });
-        }, (FPS - time_diff) * 1000);
+        }, (FPS - timeDiff) * 1000);
       } else
         requestAnimationFrame(function() {
           t.__animate(tid);
@@ -374,12 +377,12 @@ DiceBox.prototype.clear = function() {
   }, 100);
 };
 
-DiceBox.prototype.prepare_dices_for_roll = function(vectors) {
+DiceBox.prototype.prepareDicesForRoll = function(vectors) {
   this.clear();
   this.iteration = 0;
   for (var i in vectors) {
-    this.create_dice(
-      vectors[i].set,
+    this.createDice(
+      vectors[i].dice,
       vectors[i].pos,
       vectors[i].velocity,
       vectors[i].angle,
@@ -389,46 +392,53 @@ DiceBox.prototype.prepare_dices_for_roll = function(vectors) {
 };
 
 DiceBox.prototype.roll = function(vectors, values, callback) {
-  this.prepare_dices_for_roll(vectors);
+  this.prepareDicesForRoll(vectors);
+
   if (values !== undefined && values.length) {
     this.useAdaptiveTimestep = false;
-    var res = this.emulate_throw();
-    this.prepare_dices_for_roll(vectors);
-    for (var i in res) shiftDiceFaces(this.dices[i], values[i], res[i]);
+    const res = this.emulateThrow();
+    this.prepareDicesForRoll(vectors);
+    for (let i in res) shiftDiceFaces(this.dices[i], values[i], res[i]);
   }
+
   this.callback = callback;
   this.running = new Date().getTime();
   this.lastTime = 0;
   this.__animate(this.running);
 };
 
-DiceBox.prototype.__selectorAnimate = function(threadId) {
-  var time = new Date().getTime();
-  var time_diff = (time - this.lastTime) / 1000;
-  if (time_diff > 3) time_diff = FPS;
-  var angle_change =
-    (0.3 * time_diff * Math.PI * Math.min(24000 + threadId - time, 6000)) /
-    6000;
-  if (angle_change < 0) this.running = false;
-  for (var i in this.dices) {
-    this.dices[i].rotation.y += angle_change;
-    this.dices[i].rotation.x += angle_change / 4;
-    this.dices[i].rotation.z += angle_change / 10;
+DiceBox.prototype.__animateSelector = function(threadId) {
+  const now = new Date().getTime();
+  let timeDiff = (now - this.lastTime) / 1000;
+
+  if (timeDiff > 3) timeDiff = FPS;
+
+  const angleDelta =
+    (0.3 * timeDiff * Math.PI * Math.min(24000 + threadId - now, 6000)) / 6000;
+
+  if (angleDelta < 0) this.running = false;
+
+  for (let i in this.dices) {
+    this.dices[i].rotation.y += angleDelta;
+    this.dices[i].rotation.x += angleDelta / 4;
+    this.dices[i].rotation.z += angleDelta / 10;
   }
-  this.lastTime = time;
+
+  this.lastTime = now;
   this.renderer.render(this.scene, this.camera);
+
   if (this.running === threadId) {
     (function(t, tid) {
       requestAnimationFrame(function() {
-        t.__selectorAnimate(tid);
+        t.__animateSelector(tid);
       });
     })(this, threadId);
   }
 };
 
-DiceBox.prototype.search_dice_by_mouse = function(ev) {
-  var m = $canvasMouseCoords(ev);
-  var intersects = new THREE.Raycaster(
+DiceBox.prototype.searchDiceByMouse = function(ev) {
+  const m = $canvasMouseCoords(ev);
+  const intersects = new THREE.Raycaster(
     this.camera.position,
     new THREE.Vector3(
       (m.x - this.cw) / this.aspect,
@@ -441,7 +451,7 @@ DiceBox.prototype.search_dice_by_mouse = function(ev) {
   if (intersects.length) return intersects[0].object.userData;
 };
 
-DiceBox.prototype.draw_selector = function() {
+DiceBox.prototype.showSelector = function() {
   this.clear();
 
   const step = this.w / 4.5;
@@ -466,29 +476,26 @@ DiceBox.prototype.draw_selector = function() {
 
   this.running = new Date().getTime();
   this.lastTime = 0;
-  if (this.animate_selector) this.__selectorAnimate(this.running);
+  if (this.animateSelector) this.__animateSelector(this.running);
   else this.renderer.render(this.scene, this.camera);
 };
 
-DiceBox.prototype.throw_dices = function(
+DiceBox.prototype.throwDices = function(
   vector,
   boost,
   dist,
-  notation_getter,
-  before_roll,
-  after_roll
+  getNotation,
+  onBeforeRoll,
+  onAfterRoll
 ) {
   var box = this;
   var uat = this.useAdaptiveTimestep;
 
-  let forcedResult = undefined;
-  // forcedResult = [1, 1, 1, 1];
-
-  function roll() {
-    if (after_roll) {
+  function roll(forcedResult) {
+    if (onAfterRoll) {
       box.clear();
       box.roll(vectors, forcedResult || notation.result, function(result) {
-        if (after_roll) after_roll.call(box, notation, result);
+        if (onAfterRoll) onAfterRoll.call(box, notation, result);
         box.rolling = false;
         this.useAdaptiveTimestep = uat;
       });
@@ -498,93 +505,83 @@ DiceBox.prototype.throw_dices = function(
   vector.x /= dist;
   vector.y /= dist;
 
-  const notation = notation_getter.call(box);
-  if (notation.set.length === 0) return;
-  var vectors = box.generate_vectors(notation, vector, boost);
+  const notation = getNotation.call(box);
+  if (notation.dice.length === 0) return;
+  var vectors = box.generateVectors(notation, vector, boost);
   box.rolling = true;
-  if (before_roll) before_roll.call(box, vectors, notation, roll);
+  if (onBeforeRoll) onBeforeRoll.call(box, vectors, notation, roll);
   else roll();
 };
 
-DiceBox.prototype.bind_mouse = function(
+DiceBox.prototype.bindMouse = function(
   container,
-  notation_getter,
-  before_roll,
-  after_roll
+  getNotation,
+  onBeforeRoll,
+  onAfterRoll
 ) {
-  var box = this;
-
-  $listen(container, 'mousedown touchstart', function(ev) {
-    box.mouse_time = new Date().getTime();
-    box.mouse_start = $canvasMouseCoords(ev);
+  $listen(container, 'mousedown touchstart', ev => {
+    this.mouseTime = new Date().getTime();
+    this.mouseStart = $canvasMouseCoords(ev);
   });
 
-  $listen(container, 'mouseup touchend', function(ev) {
-    if (box.rolling) return;
-    if (box.mouse_start === undefined) return;
+  $listen(container, 'mouseup touchend', ev => {
+    if (this.rolling) return;
+    if (this.mouseStart === undefined) return;
 
     ev.stopPropagation();
 
-    var m = $canvasMouseCoords(ev);
-    var vector = {
-      x: m.x - box.mouse_start.x,
-      y: -(m.y - box.mouse_start.y),
+    const m = $canvasMouseCoords(ev);
+    const vector = {
+      x: m.x - this.mouseStart.x,
+      y: -(m.y - this.mouseStart.y),
     };
 
-    box.mouse_start = undefined;
+    this.mouseStart = undefined;
 
-    var dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+    const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+    if (dist < Math.sqrt(this.w * this.h * 0.01)) return;
 
-    if (dist < Math.sqrt(box.w * box.h * 0.01)) return;
+    let duration = new Date().getTime() - this.mouseTime;
+    if (duration > 2000) duration = 2000;
 
-    var time_int = new Date().getTime() - box.mouse_time;
+    const boost = Math.sqrt((2500 - duration) / 2500) * dist * 2;
 
-    if (time_int > 2000) time_int = 2000;
-
-    var boost = Math.sqrt((2500 - time_int) / 2500) * dist * 2;
-
-    box.throw_dices(
+    this.throwDices(
       vector,
       boost,
       dist,
-      notation_getter,
-      before_roll,
-      after_roll
+      getNotation,
+      onBeforeRoll,
+      onAfterRoll
     );
   });
 };
 
-DiceBox.prototype.bind_throw = function(
+DiceBox.prototype.bindThrow = function(
   button,
-  notation_getter,
-  before_roll,
-  after_roll
+  getNotation,
+  onBeforeRoll,
+  onAfterRoll
 ) {
-  var box = this;
-  $listen(button, 'mouseup touchend', function(ev) {
+  $listen(button, 'mouseup touchend', ev => {
     ev.stopPropagation();
-    box.start_throw(notation_getter, before_roll, after_roll);
+    this.startThrow(getNotation, onBeforeRoll, onAfterRoll);
   });
 };
 
-DiceBox.prototype.start_throw = function(
-  notation_getter,
-  before_roll,
-  after_roll
+DiceBox.prototype.startThrow = function(
+  getNotation,
+  onBeforeRoll,
+  onAfterRoll
 ) {
-  var box = this;
-  if (box.rolling) return;
+  if (this.rolling) return;
 
-  var vector = { x: (rand() * 2 - 1) * box.w, y: -(rand() * 2 - 1) * box.h };
-  var dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
-  var boost = (rand() + 3) * dist;
+  const vector = {
+    x: (rand() * 2 - 1) * this.w,
+    y: -(rand() * 2 - 1) * this.h,
+  };
+  const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+  const boost = (rand() + 3) * dist;
 
-  box.throw_dices(
-    vector,
-    boost,
-    dist,
-    notation_getter,
-    before_roll,
-    after_roll
-  );
+  this.throwDices(vector, boost, dist, getNotation, onBeforeRoll, onAfterRoll);
 };

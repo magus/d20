@@ -1,7 +1,17 @@
 // @flow
+import * as THREE from 'three';
+
+import CANNON from '~/libs/cannon.min';
 import keyMirror from '~/app/utils/keyMirror';
 
-const DICE: { [d: string]: string } = keyMirror({
+type DiceTypes = $Keys<typeof DICE>;
+export type Dice = {
+  type: DiceTypes,
+  castShadow: boolean,
+  body: typeof CANNON.RigidBody,
+} & typeof THREE.Mesh;
+
+const DICE = keyMirror({
   d4: true,
   d6: true,
   d8: true,
@@ -11,7 +21,7 @@ const DICE: { [d: string]: string } = keyMirror({
   d100: true,
 });
 
-const DICE_TYPES: string[] = Object.keys(DICE);
+const DICE_TYPES: DiceTypes[] = Object.keys(DICE);
 
 const DICE_RANGE = {
   [DICE.d4]: [1, 4],

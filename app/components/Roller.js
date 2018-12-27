@@ -5,23 +5,23 @@ import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
 import { $id, $set, $listen } from '~/app/utils/dom';
 
-const stringify_notation = function(nn) {
+const stringify_notation = function(notation) {
   const dict = {};
 
-  let notation = '';
+  let output = '';
 
-  for (let i in nn.set)
-    if (!dict[nn.set[i]]) dict[nn.set[i]] = 1;
-    else ++dict[nn.set[i]];
+  for (let i in notation.dice)
+    if (!dict[notation.dice[i]]) dict[notation.dice[i]] = 1;
+    else ++dict[notation.dice[i]];
 
   for (let i in dict) {
-    if (notation.length) notation += ' + ';
-    notation += (dict[i] > 1 ? dict[i] : '') + i;
+    if (output.length) output += ' + ';
+    output += (dict[i] > 1 ? dict[i] : '') + i;
   }
 
-  if (nn.constant) notation += ' + ' + nn.constant;
+  if (notation.constant) output += ' + ' + notation.constant;
 
-  return notation;
+  return output;
 };
 
 // Parse standard dice notation
@@ -31,34 +31,36 @@ const stringify_notation = function(nn) {
 // 4d6        [d6, d6, d6, d6]
 // 2d8+4      +4 + [d8, d8]
 // 4d6 @ 6 6  [6, 6, d6, d6]
-const parse_notation = function(notation) {
-  var no = notation.split('@');
-  var dr0 = /\s*(\d*)([a-z]+)(\d+)(\s*([+-])\s*(\d+)){0,1}\s*(\+|$)/gi;
-  var dr1 = /(\b)*(\d+)(\b)*/gi;
-  var ret = { set: [], constant: 0, result: [], error: false },
-    res;
-  while ((res = dr0.exec(no[0]))) {
-    var command = res[2];
-    if (command !== 'd') {
-      ret.error = true;
-      continue;
-    }
-    var count = parseInt(res[1]);
-    if (res[1] === '') count = 1;
-    var type = 'd' + res[3];
+const parseNotation = function(notation) {
+  const no = notation.split('@');
+  const dr0 = /\s*(\d*)(d\d+)(\s*[+-]\s*\d+){0,1}\s*(\+|$)/gi;
+  const dr1 = /(\b)*(\d+)(\b)*/gi;
+  const ret = { dice: [], constant: 0, result: [], error: false };
 
+  let res;
+  // Parse each dice notation
+  while ((res = dr0.exec(no[0]))) {
+    let count = parseInt(res[1]);
+    if (res[1] === '') count = 1;
+
+    const type = res[2];
     if (!DICE.Type[type]) {
       ret.error = true;
       continue;
     }
-    while (count--) ret.set.push(type);
-    const sign = res[5] === '-' ? -1 : 1;
-    const mod = sign * parseInt(res[6]);
-    if (res[6]) ret.constant += mod;
+
+    while (count--) ret.dice.push(type);
+
+    if (res[3]) {
+      ret.constant += parseInt(res[3].replace(/s/g, ''));
+    }
   }
+
+  // Forced results
   while ((res = dr1.exec(no[1]))) {
     ret.result.push(parseInt(res[2]));
   }
+
   return ret;
 };
 
@@ -69,7 +71,7 @@ function dice_initialize(container) {
 
   const label = $id('label');
   const set = $id('set');
-  const selector_div = $id('selector_div');
+  const selectorDiv = $id('selectorDiv');
 
   on_set_change();
 
@@ -106,24 +108,25 @@ function dice_initialize(container) {
   });
 
   function show_selector() {
-    selector_div.style.display = 'inline-block';
-    box.draw_selector();
+    selectorDiv.style.display = 'inline-block';
+    box.showSelector();
   }
 
   function before_roll(vectors, notation, callback) {
-    selector_div.style.display = 'none';
-    // do here rpc call or whatever to get your own result of throw.
-    // then callback with array of your result, example:
-    // callback([2, 2, 2, 2]); // for 4d6 where all dice values are 2.
-    callback();
+    selectorDiv.style.display = 'none';
+
+    // Force a roll result
+    // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
+    // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
+    callback([1, 1, 1, 1]);
   }
 
-  function notation_getter() {
-    return parse_notation(set.value);
+  function getNotation() {
+    return parseNotation(set.value);
   }
 
-  function after_roll(notation, result) {
-    var res = result.join(' ');
+  function onAfterRoll(notation, result) {
+    let res = result.join(' ');
     if (notation.constant) res += ' +' + notation.constant;
     if (result.length > 1)
       res +=
@@ -135,20 +138,22 @@ function dice_initialize(container) {
     label.innerHTML = res;
   }
 
-  box.bind_mouse(container, notation_getter, before_roll, after_roll);
-  box.bind_throw($id('throw'), notation_getter, before_roll, after_roll);
+  box.bindMouse(container, getNotation, before_roll, onAfterRoll);
+  box.bindThrow($id('throw'), getNotation, before_roll, onAfterRoll);
 
   $listen(container, 'mouseup', function(ev) {
     ev.stopPropagation();
-    if (selector_div.style.display === 'none') {
+
+    if (selectorDiv.style.display === 'none') {
       if (!box.rolling) show_selector();
       box.rolling = false;
       return;
     }
-    var name = box.search_dice_by_mouse(ev);
+
+    const name = box.searchDiceByMouse(ev);
     if (name !== undefined) {
-      var notation = notation_getter();
-      notation.set.push(name);
+      const notation = getNotation();
+      notation.dice.push(name);
       set.value = stringify_notation(notation);
       on_set_change();
     }
@@ -172,7 +177,7 @@ export default class Roller extends React.Component {
           <span id="label" />
         </div>
 
-        <div id="selector_div" style={{ display: 'none' }}>
+        <div id="selectorDiv" style={{ display: 'none' }}>
           <div className="center_field">
             <div id="sethelp">
               choose your dice set by clicking the dices or by direct input of

@@ -116,14 +116,11 @@ class WithSocketInfo extends React.Component<Props, State> {
         <Roller />
 
         <Result>
-
           <Users users={this.state.users} />
 
           <button onClick={this._emitRoll}>
             <FormattedMessage {...messages.roll} />
           </button>
-
-
 
           <Rolls rolls={this.state.rolls} users={this.state.users} />
         </Result>
