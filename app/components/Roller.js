@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 import DiceBox from '~/app/components/DiceBox';
 import { $id, $set, $listen } from '~/app/utils/dom';
-import { DICE_TYPES } from '~/app/utils/threeDice';
+import { DICE } from '~/app/utils/threeDice';
 
 const stringify_notation = function(nn) {
   const dict = {};
@@ -24,27 +24,37 @@ const stringify_notation = function(nn) {
   return notation;
 };
 
+// Parse standard dice notation
+// Examples
+// d20        [d20]
+// d20-2      -2 + [d20]
+// 4d6        [d6, d6, d6, d6]
+// 2d8+4      +4 + [d8, d8]
+// 4d6 @ 6 6  [6, 6, d6, d6]
 const parse_notation = function(notation) {
   var no = notation.split('@');
-  var dr0 = /\s*(\d*)([a-z]+)(\d+)(\s*\+\s*(\d+)){0,1}\s*(\+|$)/gi;
+  var dr0 = /\s*(\d*)([a-z]+)(\d+)(\s*([+-])\s*(\d+)){0,1}\s*(\+|$)/gi;
   var dr1 = /(\b)*(\d+)(\b)*/gi;
   var ret = { set: [], constant: 0, result: [], error: false },
     res;
   while ((res = dr0.exec(no[0]))) {
     var command = res[2];
-    if (command != 'd') {
+    if (command !== 'd') {
       ret.error = true;
       continue;
     }
     var count = parseInt(res[1]);
-    if (res[1] == '') count = 1;
+    if (res[1] === '') count = 1;
     var type = 'd' + res[3];
-    if (DICE_TYPES.indexOf(type) == -1) {
+
+    if (!DICE[type]) {
       ret.error = true;
       continue;
     }
     while (count--) ret.set.push(type);
-    if (res[5]) ret.constant += parseInt(res[5]);
+    const sign = res[5] === '-' ? -1 : 1;
+    const mod = sign * parseInt(res[6]);
+    if (res[6]) ret.constant += mod;
   }
   while ((res = dr1.exec(no[1]))) {
     ret.result.push(parseInt(res[2]));
@@ -87,13 +97,12 @@ function dice_initialize(container) {
     on_set_change();
   });
 
-  var box = new DiceBox(canvas, { w: 500, h: 300 });
-  box.animate_selector = false;
+  const box = new DiceBox(canvas, { w: 500, h: 300 });
 
   $listen(window, 'resize', function() {
-    canvas.style.width = window.innerWidth - 1 + 'px';
-    canvas.style.height = window.innerHeight - 1 + 'px';
-    box.reinit(canvas, { w: 500, h: 300 });
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    box.setupContainer(canvas, { w: 500, h: 300 });
   });
 
   function show_selector() {
@@ -131,13 +140,13 @@ function dice_initialize(container) {
 
   $listen(container, 'mouseup', function(ev) {
     ev.stopPropagation();
-    if (selector_div.style.display == 'none') {
+    if (selector_div.style.display === 'none') {
       if (!box.rolling) show_selector();
       box.rolling = false;
       return;
     }
     var name = box.search_dice_by_mouse(ev);
-    if (name != undefined) {
+    if (name !== undefined) {
       var notation = notation_getter();
       notation.set.push(name);
       set.value = stringify_notation(notation);

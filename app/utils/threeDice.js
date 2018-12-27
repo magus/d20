@@ -2,19 +2,41 @@
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
-export const DICE_TYPES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
+import keyMirror from '~/app/utils/keyMirror';
+
+export const DICE: { [d: string]: string } = keyMirror({
+  d4: true,
+  d6: true,
+  d8: true,
+  d10: true,
+  d12: true,
+  d20: true,
+  d100: true,
+});
+
+export const DICE_TYPES: string[] = Object.keys(DICE);
+
+const DICE_RANGE = {
+  [DICE.d4]: [1, 4],
+  [DICE.d6]: [1, 6],
+  [DICE.d8]: [1, 8],
+  [DICE.d10]: [0, 9],
+  [DICE.d12]: [1, 12],
+  [DICE.d20]: [1, 20],
+  [DICE.d100]: [0, 9],
+};
 
 const SCALE = 50;
 
-const material_options = {
+const DICE_MATERIAL = {
   specular: 0x172022,
   color: 0xf0f0f0,
   shininess: 40,
   shading: THREE.FlatShading,
 };
 
-const label_color = '#aaaaaa';
-const dice_color = '#202020';
+const label_color = '#fff';
+const dice_color = '#000';
 
 const standart_d20_dice_face_labels = [
   ' ',
@@ -54,6 +76,67 @@ const standart_d100_dice_face_labels = [
   '80',
   '90',
 ];
+
+function readDice(dice: any) {
+  const vector = new THREE.Vector3(0, 0, dice.dice_type === 'd4' ? -1 : 1);
+
+  let closest_face;
+  let closest_angle = Math.PI * 2;
+  for (let i = 0, l = dice.geometry.faces.length; i < l; ++i) {
+    const face = dice.geometry.faces[i];
+
+    if (face.materialIndex === 0) continue;
+
+    const angle = face.normal
+      .clone()
+      .applyQuaternion(dice.body.quaternion)
+      .angleTo(vector);
+
+    if (angle < closest_angle) {
+      closest_angle = angle;
+      closest_face = face;
+    }
+  }
+
+  if (!closest_face) throw new Error('unable to find closest face');
+
+  let matindex = closest_face.materialIndex - 1;
+  if (dice.dice_type === 'd100') matindex *= 10;
+
+  return matindex;
+}
+
+export function readDices(dices: any[]) {
+  const values = [];
+
+  for (let i = 0, l = dices.length; i < l; ++i) {
+    values.push(readDice(dices[i]));
+  }
+
+  return values;
+}
+
+export function shiftDiceFaces(dice: any, value: number, res: number) {
+  const r = DICE_RANGE[dice.dice_type];
+
+  if (!(value >= r[0] && value <= r[1])) return;
+
+  const num = value - res;
+  const geom = dice.geometry.clone();
+
+  for (let i = 0, l = geom.faces.length; i < l; ++i) {
+    let matindex = geom.faces[i].materialIndex;
+
+    if (matindex === 0) continue;
+
+    matindex += num - 1;
+    while (matindex > r[1]) matindex -= r[1];
+    while (matindex < r[0]) matindex += r[1];
+    geom.faces[i].materialIndex = matindex + 1;
+  }
+
+  dice.geometry = geom;
+}
 
 function create_shape(vertices, faces, radius) {
   const cv = new Array(vertices.length);
@@ -162,14 +245,14 @@ function chamfer_geom(vectors, faces, chamfer) {
         const n = faces[j].indexOf(faces[i][m]);
 
         if (n >= 0 && n < faces[j].length - 1) {
-          if (lastm >= 0 && m != lastm + 1) pairs.unshift([i, m], [j, n]);
+          if (lastm >= 0 && m !== lastm + 1) pairs.unshift([i, m], [j, n]);
           else pairs.push([i, m], [j, n]);
 
           lastm = m;
         }
       }
 
-      if (pairs.length != 4) continue;
+      if (pairs.length !== 4) continue;
 
       chamfer_faces.push([
         chamfer_faces[pairs[0][0]][pairs[0][1]],
@@ -191,7 +274,7 @@ function chamfer_geom(vectors, faces, chamfer) {
         let index = chamfer_faces[m].indexOf(face[face.length - 1]);
 
         if (index >= 0 && index < 4) {
-          if (--index == -1) index = 3;
+          if (--index === -1) index = 3;
 
           const next_vertex = chamfer_faces[m][index];
 
@@ -226,7 +309,7 @@ function calc_texture_size(approx) {
 }
 
 function create_text_texture(text, color, back_color, size, margin) {
-  if (text == undefined) return null;
+  if (text === undefined) return null;
 
   var canvas = document.createElement('canvas');
   var context = canvas.getContext('2d');
@@ -239,7 +322,7 @@ function create_text_texture(text, color, back_color, size, margin) {
   context.textBaseline = 'middle';
   context.fillStyle = color;
   context.fillText(text, canvas.width / 2, canvas.height / 2);
-  if (text == '6' || text == '9') {
+  if (text === '6' || text === '9') {
     context.fillText('  .', canvas.width / 2, canvas.height / 2);
   }
   var texture = new THREE.Texture(canvas);
@@ -259,7 +342,7 @@ const create_dice_materials = function(face_labels, size, margin) {
           size,
           margin
         ),
-        ...material_options,
+        ...DICE_MATERIAL,
       })
     );
   return materials;
@@ -303,7 +386,7 @@ const create_d4_materials = function() {
     materials.push(
       new THREE.MeshPhongMaterial({
         map: create_d4_text(labels[i], label_color, dice_color),
-        ...material_options,
+        ...DICE_MATERIAL,
       })
     );
   return materials;
@@ -482,14 +565,14 @@ const create_d20_geometry = function(radius) {
 };
 
 export const DiceBuilder = {
-  create_d4: function() {
+  [DICE.d4]: function() {
     if (!this.d4_geometry) this.d4_geometry = create_d4_geometry(SCALE * 1.2);
     if (!this.d4_material)
       this.d4_material = new THREE.MeshFaceMaterial(create_d4_materials());
     return new THREE.Mesh(this.d4_geometry, this.d4_material);
   },
 
-  create_d6: function() {
+  [DICE.d6]: function() {
     if (!this.d6_geometry) this.d6_geometry = create_d6_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
@@ -498,7 +581,7 @@ export const DiceBuilder = {
     return new THREE.Mesh(this.d6_geometry, this.dice_material);
   },
 
-  create_d8: function() {
+  [DICE.d8]: function() {
     if (!this.d8_geometry) this.d8_geometry = create_d8_geometry(SCALE);
     if (!this.d8_material) {
       this.d8_material = new THREE.MeshFaceMaterial(
@@ -509,7 +592,7 @@ export const DiceBuilder = {
     return new THREE.Mesh(this.d8_geometry, this.d8_material);
   },
 
-  create_d10: function() {
+  [DICE.d10]: function() {
     if (!this.d10_geometry)
       this.d10_geometry = create_d10_geometry(SCALE * 0.9);
     if (!this.dice_material)
@@ -519,7 +602,7 @@ export const DiceBuilder = {
     return new THREE.Mesh(this.d10_geometry, this.dice_material);
   },
 
-  create_d12: function() {
+  [DICE.d12]: function() {
     if (!this.d12_geometry)
       this.d12_geometry = create_d12_geometry(SCALE * 0.9);
     if (!this.dice_material)
@@ -529,7 +612,7 @@ export const DiceBuilder = {
     return new THREE.Mesh(this.d12_geometry, this.dice_material);
   },
 
-  create_d20: function() {
+  [DICE.d20]: function() {
     if (!this.d20_geometry) this.d20_geometry = create_d20_geometry(SCALE);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
@@ -538,7 +621,7 @@ export const DiceBuilder = {
     return new THREE.Mesh(this.d20_geometry, this.dice_material);
   },
 
-  create_d100: function() {
+  [DICE.d100]: function() {
     if (!this.d10_geometry)
       this.d10_geometry = create_d10_geometry(SCALE * 0.9);
     if (!this.d100_material)
