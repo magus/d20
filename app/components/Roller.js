@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 import DiceBox from '~/app/components/DiceBox';
+import DICE from '~/app/utils/DICE';
 import { $id, $set, $listen } from '~/app/utils/dom';
-import { DICE } from '~/app/utils/threeDice';
 
 const stringify_notation = function(nn) {
   const dict = {};
@@ -47,7 +47,7 @@ const parse_notation = function(notation) {
     if (res[1] === '') count = 1;
     var type = 'd' + res[3];
 
-    if (!DICE[type]) {
+    if (!DICE.Type[type]) {
       ret.error = true;
       continue;
     }

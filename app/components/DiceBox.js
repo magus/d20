@@ -2,10 +2,11 @@
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
+import DICE from '~/app/utils/DICE';
 import rand from '~/app/utils/rand';
 import { $listen, $canvasMouseCoords } from '~/app/utils/dom';
 import { randVector } from '~/app/utils/geometry';
-import { DICE, DICE_TYPES, DiceBuilder, readDices, shiftDiceFaces } from '~/app/utils/threeDice';
+import { DiceBuilder, readDices, shiftDiceFaces } from '~/app/utils/threeDice';
 
 const FPS = 1 / 60;
 
@@ -21,23 +22,23 @@ const OBJECTS = {
 };
 
 const DICE_MASS = {
-  [DICE.d4]: 300,
-  [DICE.d6]: 300,
-  [DICE.d8]: 340,
-  [DICE.d10]: 350,
-  [DICE.d12]: 350,
-  [DICE.d20]: 400,
-  [DICE.d100]: 350,
+  [DICE.Type.d4]: 300,
+  [DICE.Type.d6]: 300,
+  [DICE.Type.d8]: 340,
+  [DICE.Type.d10]: 350,
+  [DICE.Type.d12]: 350,
+  [DICE.Type.d20]: 400,
+  [DICE.Type.d100]: 350,
 };
 
 const DICE_INERTIA = {
-  [DICE.d4]: 5,
-  [DICE.d6]: 13,
-  [DICE.d8]: 10,
-  [DICE.d10]: 9,
-  [DICE.d12]: 8,
-  [DICE.d20]: 6,
-  [DICE.d100]: 9,
+  [DICE.Type.d4]: 5,
+  [DICE.Type.d6]: 13,
+  [DICE.Type.d8]: 10,
+  [DICE.Type.d10]: 9,
+  [DICE.Type.d12]: 8,
+  [DICE.Type.d20]: 6,
+  [DICE.Type.d100]: 9,
 };
 
 export default function DiceBox(
@@ -454,11 +455,11 @@ DiceBox.prototype.draw_selector = function() {
   this.pane.position.set(0, 0, 1);
   this.scene.add(this.pane);
 
-  for (let i = 0, pos = -3; i < DICE_TYPES.length; ++i, ++pos) {
-    const dice = DiceBuilder[DICE_TYPES[i]]();
+  for (let i = 0, pos = -3; i < DICE.AllTypes.length; ++i, ++pos) {
+    const dice = DiceBuilder[DICE.AllTypes[i]]();
     dice.position.set(pos * step, 0, step * 0.5);
     dice.castShadow = true;
-    dice.userData = DICE_TYPES[i];
+    dice.userData = DICE.AllTypes[i];
     this.dices.push(dice);
     this.scene.add(dice);
   }
