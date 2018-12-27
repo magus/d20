@@ -116,14 +116,7 @@ class WithSocketInfo extends React.Component<Props, State> {
         <Header>d20</Header>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <Result>
-          <Users users={this.state.users} />
-
-          <button onClick={this._emitRoll}>
-            <FormattedMessage {...messages.roll} />
-          </button>
-
-          <div className="control_panel">
+        <div className="control_panel">
             <p id="loading_text">Loading libraries, please wait a bit...</p>
           </div>
           <div id="info_div" style={{ display: 'none' }}>
@@ -156,7 +149,17 @@ class WithSocketInfo extends React.Component<Props, State> {
               </button>
             </div>
           </div>
-          <div id="canvas" />
+          <div id="canvas" style={{ zIndex: -1, position: 'absolute', top: 0, left: 0 }} />
+
+        <Result>
+
+          <Users users={this.state.users} />
+
+          <button onClick={this._emitRoll}>
+            <FormattedMessage {...messages.roll} />
+          </button>
+
+
 
           <Rolls rolls={this.state.rolls} users={this.state.users} />
         </Result>
