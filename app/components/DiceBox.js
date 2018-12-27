@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
 import { $firstParent, $listen } from '~/app/utils/dom';
+import { DICE_TYPES, DiceBuilder } from '~/app/utils/threeDice';
 
 function getMouseCoords(event) {
   const canvas = $firstParent(event.target, e => e.tagName === 'CANVAS');
@@ -17,10 +18,45 @@ function getMouseCoords(event) {
   };
 }
 
+const frame_rate = 1 / 60;
+const ambient_light_color = 0xf0f5fb;
+const spot_light_color = 0xefdfd5;
+const selector_back_colors = {
+  color: 0x404040,
+  shininess: 0,
+  emissive: 0x858787,
+};
+const desk_color = 0xdfdfdf;
+const dice_face_range = {
+  d4: [1, 4],
+  d6: [1, 6],
+  d8: [1, 8],
+  d10: [0, 9],
+  d12: [1, 12],
+  d20: [1, 20],
+  d100: [0, 9],
+};
+const dice_mass = {
+  d4: 300,
+  d6: 300,
+  d8: 340,
+  d10: 350,
+  d12: 350,
+  d20: 400,
+  d100: 350,
+};
+const dice_inertia = {
+  d4: 5,
+  d6: 13,
+  d8: 10,
+  d10: 9,
+  d12: 8,
+  d20: 6,
+  d100: 9,
+};
 const rnd = () => Math.random();
 
-export default function DiceBox(that, container, dimentions) {
-  this.that = that;
+export default function DiceBox(container, dimentions) {
   this.use_adapvite_timestep = true;
   this.animate_selector = true;
 
@@ -42,7 +78,7 @@ export default function DiceBox(that, container, dimentions) {
   this.world.broadphase = new CANNON.NaiveBroadphase();
   this.world.solver.iterations = 16;
 
-  var ambientLight = new THREE.AmbientLight(that.ambient_light_color);
+  var ambientLight = new THREE.AmbientLight(ambient_light_color);
   this.scene.add(ambientLight);
 
   this.dice_body_material = new CANNON.Material();
@@ -104,8 +140,6 @@ export default function DiceBox(that, container, dimentions) {
 }
 
 DiceBox.prototype.reinit = function(container, dimentions) {
-  const that = this.that;
-
   this.cw = container.clientWidth / 2;
   this.ch = container.clientHeight / 2;
   if (dimentions) {
@@ -116,7 +150,9 @@ DiceBox.prototype.reinit = function(container, dimentions) {
     this.h = this.ch;
   }
   this.aspect = Math.min(this.cw / this.w, this.ch / this.h);
-  that.scale = Math.sqrt(this.w * this.w + this.h * this.h) / 13;
+
+  // Update DiceBuilder scale field
+  DiceBuilder.setScale(Math.sqrt(this.w * this.w + this.h * this.h) / 13);
 
   this.renderer.setSize(this.cw * 2, this.ch * 2);
 
@@ -132,7 +168,7 @@ DiceBox.prototype.reinit = function(container, dimentions) {
 
   var mw = Math.max(this.w, this.h);
   if (this.light) this.scene.remove(this.light);
-  this.light = new THREE.SpotLight(that.spot_light_color, 2.0);
+  this.light = new THREE.SpotLight(spot_light_color, 2.0);
   this.light.position.set(-mw / 2, mw / 2, mw * 2);
   this.light.target.position.set(0, 0, 0);
   this.light.distance = mw * 5;
@@ -149,7 +185,7 @@ DiceBox.prototype.reinit = function(container, dimentions) {
   if (this.desk) this.scene.remove(this.desk);
   this.desk = new THREE.Mesh(
     new THREE.PlaneGeometry(this.w * 2, this.h * 2, 1, 1),
-    new THREE.MeshPhongMaterial({ color: that.desk_color })
+    new THREE.MeshPhongMaterial({ color: desk_color })
   );
   this.desk.receiveShadow = true;
   this.scene.add(this.desk);
@@ -169,28 +205,30 @@ function make_random_vector(vector) {
 }
 
 DiceBox.prototype.generate_vectors = function(notation, vector, boost) {
-  const that = this.that;
+  const vectors = [];
 
-  var vectors = [];
-  for (var i in notation.set) {
-    var vec = make_random_vector(vector);
-    var pos = {
+  for (let i in notation.set) {
+    const vec = make_random_vector(vector);
+    const pos = {
       x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
       y: this.h * (vec.y > 0 ? -1 : 1) * 0.9,
       z: rnd() * 200 + 200,
     };
-    var projector = Math.abs(vec.x / vec.y);
+    const projector = Math.abs(vec.x / vec.y);
+
     if (projector > 1.0) pos.y /= projector;
     else pos.x *= projector;
-    var velvec = make_random_vector(vector);
-    var velocity = { x: velvec.x * boost, y: velvec.y * boost, z: -10 };
-    var inertia = that.dice_inertia[notation.set[i]];
-    var angle = {
+
+    const velvec = make_random_vector(vector);
+    const velocity = { x: velvec.x * boost, y: velvec.y * boost, z: -10 };
+    const inertia = dice_inertia[notation.set[i]];
+    const angle = {
       x: -(rnd() * vec.y * 5 + inertia * vec.y),
       y: rnd() * vec.x * 5 + inertia * vec.x,
       z: 0,
     };
-    var axis = { x: rnd(), y: rnd(), z: rnd(), a: rnd() };
+    const axis = { x: rnd(), y: rnd(), z: rnd(), a: rnd() };
+
     vectors.push({
       set: notation.set[i],
       pos: pos,
@@ -199,17 +237,16 @@ DiceBox.prototype.generate_vectors = function(notation, vector, boost) {
       axis: axis,
     });
   }
+
   return vectors;
 };
 
 DiceBox.prototype.create_dice = function(type, pos, velocity, angle, axis) {
-  const that = this.that;
-
-  var dice = that['create_' + type]();
+  var dice = DiceBuilder['create_' + type]();
   dice.castShadow = true;
   dice.dice_type = type;
   dice.body = new CANNON.RigidBody(
-    that.dice_mass[type],
+    dice_mass[type],
     dice.geometry.cannon_shape,
     this.dice_body_material
   );
@@ -228,11 +265,9 @@ DiceBox.prototype.create_dice = function(type, pos, velocity, angle, axis) {
 };
 
 DiceBox.prototype.check_if_throw_finished = function() {
-  const that = this.that;
-
   var res = true;
   var e = 6;
-  if (this.iteration < 10 / that.frame_rate) {
+  if (this.iteration < 10 / frame_rate) {
     for (var i = 0; i < this.dices.length; ++i) {
       var dice = this.dices[i];
       if (dice.dice_stopped === true) continue;
@@ -292,32 +327,28 @@ function get_dice_values(dices) {
 }
 
 DiceBox.prototype.emulate_throw = function() {
-  const that = this.that;
-
   while (!this.check_if_throw_finished()) {
     ++this.iteration;
-    this.world.step(that.frame_rate);
+    this.world.step(frame_rate);
   }
   return get_dice_values(this.dices);
 };
 
 DiceBox.prototype.__animate = function(threadid) {
-  const that = this.that;
-
   var time = new Date().getTime();
   var time_diff = (time - this.last_time) / 1000;
-  if (time_diff > 3) time_diff = that.frame_rate;
+  if (time_diff > 3) time_diff = frame_rate;
   ++this.iteration;
 
   try {
     if (this.use_adapvite_timestep) {
-      while (time_diff > that.frame_rate * 1.1) {
-        this.world.step(that.frame_rate);
-        time_diff -= that.frame_rate;
+      while (time_diff > frame_rate * 1.1) {
+        this.world.step(frame_rate);
+        time_diff -= frame_rate;
       }
       this.world.step(time_diff);
     } else {
-      this.world.step(that.frame_rate);
+      this.world.step(frame_rate);
     }
   } catch (err) {
     console.error(err);
@@ -338,12 +369,12 @@ DiceBox.prototype.__animate = function(threadid) {
   }
   if (this.running == threadid) {
     (function(t, tid, uat) {
-      if (!uat && time_diff < that.frame_rate) {
+      if (!uat && time_diff < frame_rate) {
         setTimeout(function() {
           requestAnimationFrame(function() {
             t.__animate(tid);
           });
-        }, (that.frame_rate - time_diff) * 1000);
+        }, (frame_rate - time_diff) * 1000);
       } else
         requestAnimationFrame(function() {
           t.__animate(tid);
@@ -382,20 +413,24 @@ DiceBox.prototype.prepare_dices_for_roll = function(vectors) {
 };
 
 function shift_dice_faces(dice, value, res) {
-  const that = this.that;
+  const r = dice_face_range[dice.dice_type];
 
-  var r = that.dice_face_range[dice.dice_type];
   if (!(value >= r[0] && value <= r[1])) return;
-  var num = value - res;
-  var geom = dice.geometry.clone();
-  for (var i = 0, l = geom.faces.length; i < l; ++i) {
-    var matindex = geom.faces[i].materialIndex;
+
+  const num = value - res;
+  const geom = dice.geometry.clone();
+
+  for (let i = 0, l = geom.faces.length; i < l; ++i) {
+    let matindex = geom.faces[i].materialIndex;
+
     if (matindex == 0) continue;
+
     matindex += num - 1;
     while (matindex > r[1]) matindex -= r[1];
     while (matindex < r[0]) matindex += r[1];
     geom.faces[i].materialIndex = matindex + 1;
   }
+
   dice.geometry = geom;
 }
 
@@ -414,11 +449,9 @@ DiceBox.prototype.roll = function(vectors, values, callback) {
 };
 
 DiceBox.prototype.__selector_animate = function(threadid) {
-  const that = this.that;
-
   var time = new Date().getTime();
   var time_diff = (time - this.last_time) / 1000;
-  if (time_diff > 3) time_diff = that.frame_rate;
+  if (time_diff > 3) time_diff = frame_rate;
   var angle_change =
     (0.3 * time_diff * Math.PI * Math.min(24000 + threadid - time, 6000)) /
     6000;
@@ -455,26 +488,24 @@ DiceBox.prototype.search_dice_by_mouse = function(ev) {
 };
 
 DiceBox.prototype.draw_selector = function() {
-  const that = this.that;
-
   this.clear();
 
   const step = this.w / 4.5;
 
   this.pane = new THREE.Mesh(
     new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1),
-    new THREE.MeshPhongMaterial(that.selector_back_colors)
+    new THREE.MeshPhongMaterial(selector_back_colors)
   );
 
   this.pane.receiveShadow = true;
   this.pane.position.set(0, 0, 1);
   this.scene.add(this.pane);
 
-  for (let i = 0, pos = -3; i < that.known_types.length; ++i, ++pos) {
-    const dice = that['create_' + that.known_types[i]]();
+  for (let i = 0, pos = -3; i < DICE_TYPES.length; ++i, ++pos) {
+    const dice = DiceBuilder['create_' + DICE_TYPES[i]]();
     dice.position.set(pos * step, 0, step * 0.5);
     dice.castShadow = true;
-    dice.userData = that.known_types[i];
+    dice.userData = DICE_TYPES[i];
     this.dices.push(dice);
     this.scene.add(dice);
   }
