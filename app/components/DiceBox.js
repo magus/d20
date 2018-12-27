@@ -51,6 +51,7 @@ export default function DiceBox(
 ) {
   this.useAdaptiveTimestep = true;
   this.animateSelector = true;
+  this.isShowingSelector = true;
 
   this.dices = [];
   this.scene = new THREE.Scene();
@@ -452,6 +453,8 @@ DiceBox.prototype.searchDiceByMouse = function(ev) {
 };
 
 DiceBox.prototype.showSelector = function() {
+  this.isShowingSelector = true;
+
   this.clear();
 
   const step = this.w / 4.5;
@@ -488,6 +491,8 @@ DiceBox.prototype.throwDices = function(
   onBeforeRoll,
   onAfterRoll
 ) {
+  this.isShowingSelector = false;
+
   var box = this;
   var uat = this.useAdaptiveTimestep;
 

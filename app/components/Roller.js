@@ -69,9 +69,7 @@ function onMount(container) {
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
 
-  const label = $id('label');
   const set = $id('set');
-  const selectorDiv = $id('selectorDiv');
 
   handleSetChange();
 
@@ -107,13 +105,8 @@ function onMount(container) {
     box.setupContainer(canvas, { w: 500, h: 300 });
   });
 
-  function showSelector() {
-    selectorDiv.style.display = 'inline-block';
-    box.showSelector();
-  }
-
   function onBeforeRoll(vectors, notation, callback) {
-    selectorDiv.style.display = 'none';
+    console.debug('onBeforeRoll', { vectors, notation, callback });
 
     // Force a roll result
     // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
@@ -135,9 +128,8 @@ function onMount(container) {
   $listen(container, 'mouseup', function(ev) {
     ev.stopPropagation();
 
-    if (selectorDiv.style.display === 'none') {
-      if (!box.rolling) showSelector();
-      box.rolling = false;
+    if (!box.isShowingSelector && !box.rolling) {
+      box.showSelector();
       return;
     }
 
@@ -150,7 +142,7 @@ function onMount(container) {
     }
   });
 
-  showSelector();
+  box.showSelector();
 }
 
 export default class Roller extends React.Component {
@@ -164,16 +156,12 @@ export default class Roller extends React.Component {
       <div>
         <CanvasContainer id="canvas" />
 
-        <div className="center_field">
-          <span id="label" />
-        </div>
-
-        <div id="selectorDiv" style={{ display: 'none' }}>
+        <div>
           <div className="center_field">
             <input type="text" id="set" value="d20" />
             <br />
             <button id="clear">clear</button>
-            <button style={{ marginLeft: '0.6em' }} id="throw">
+            <button id="throw">
               throw
             </button>
           </div>
