@@ -135,7 +135,7 @@ function create_shape(vertices, faces, radius) {
 }
 
 function make_geom(vertices, faces, radius, tab, af) {
-  var geom = new THREE.Geometry();
+  const geom = new THREE.Geometry();
 
   for (let i = 0; i < vertices.length; ++i) {
     const vertex = vertices[i].multiplyScalar(radius);
@@ -273,14 +273,16 @@ function chamfer_geom(vectors, faces, chamfer) {
 }
 
 function create_geom(vertices, faces, radius, tab, af, chamfer) {
-  var vectors = new Array(vertices.length);
-  for (var i = 0; i < vertices.length; ++i) {
+  const vectors = new Array(vertices.length);
+  for (let i = 0; i < vertices.length; ++i) {
     vectors[i] = new THREE.Vector3().fromArray(vertices[i]).normalize();
   }
-  var cg = chamfer_geom(vectors, faces, chamfer);
-  var geom = make_geom(cg.vectors, cg.faces, radius, tab, af);
-  //var geom = make_geom(vectors, faces, radius, tab, af); // Without chamfer
+
+  const cg = chamfer_geom(vectors, faces, chamfer);
+  const geom = make_geom(cg.vectors, cg.faces, radius, tab, af);
+  // const geom = make_geom(vectors, faces, radius, tab, af); // Without chamfer
   geom.cannon_shape = create_shape(vectors, faces, radius);
+
   return geom;
 }
 
@@ -291,10 +293,12 @@ function calc_texture_size(approx) {
 function create_text_texture(text, color, back_color, size, margin) {
   if (text === undefined) return null;
 
-  var canvas = document.createElement('canvas');
-  var context = canvas.getContext('2d');
-  var ts = calc_texture_size(size + size * 2 * margin) * 2;
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  const ts = calc_texture_size(size + size * 2 * margin) * 2;
+
   canvas.width = canvas.height = ts;
+
   context.font = ts / (1 + 2 * margin) + 'pt Arial';
   context.fillStyle = back_color;
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -302,17 +306,21 @@ function create_text_texture(text, color, back_color, size, margin) {
   context.textBaseline = 'middle';
   context.fillStyle = color;
   context.fillText(text, canvas.width / 2, canvas.height / 2);
+
   if (text === '6' || text === '9') {
     context.fillText('  .', canvas.width / 2, canvas.height / 2);
   }
-  var texture = new THREE.Texture(canvas);
+
+  const texture = new THREE.Texture(canvas);
   texture.needsUpdate = true;
+
   return texture;
 }
 
 const create_dice_materials = function(face_labels, size, margin) {
-  var materials = [];
-  for (var i = 0; i < face_labels.length; ++i)
+  const materials = [];
+
+  for (let i = 0; i < face_labels.length; ++i)
     materials.push(
       new THREE.MeshPhongMaterial({
         map: create_text_texture(
@@ -325,6 +333,7 @@ const create_dice_materials = function(face_labels, size, margin) {
         ...DICE_MATERIAL,
       })
     );
+
   return materials;
 };
 
@@ -333,10 +342,12 @@ const create_d4_materials = function() {
   const margin = SCALE * 2;
 
   function create_d4_text(digits: number[], color, back_color) {
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    var ts = calc_texture_size(size + margin) * 2;
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    const ts = calc_texture_size(size + margin) * 2;
+
     canvas.width = canvas.height = ts;
+
     context.font = (ts - margin) / 1.5 + 'pt Arial';
     context.fillStyle = back_color;
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -360,26 +371,31 @@ const create_d4_materials = function() {
 
     return texture;
   }
-  var materials = [];
-  var labels = [[], [0, 0, 0], [2, 4, 3], [1, 3, 4], [2, 1, 4], [1, 2, 3]];
-  for (var i = 0; i < labels.length; ++i)
+
+  const materials = [];
+  const labels = [[], [0, 0, 0], [2, 4, 3], [1, 3, 4], [2, 1, 4], [1, 2, 3]];
+
+  for (let i = 0; i < labels.length; ++i) {
     materials.push(
       new THREE.MeshPhongMaterial({
         map: create_d4_text(labels[i], label_color, dice_color),
         ...DICE_MATERIAL,
       })
     );
+  }
+
   return materials;
 };
 
 const create_d4_geometry = function(radius) {
-  var vertices = [[1, 1, 1], [-1, -1, 1], [-1, 1, -1], [1, -1, -1]];
-  var faces = [[1, 0, 2, 1], [0, 1, 3, 2], [0, 3, 2, 3], [1, 2, 3, 4]];
+  const vertices = [[1, 1, 1], [-1, -1, 1], [-1, 1, -1], [1, -1, -1]];
+  const faces = [[1, 0, 2, 1], [0, 1, 3, 2], [0, 3, 2, 3], [1, 2, 3, 4]];
+
   return create_geom(vertices, faces, radius, -0.1, (Math.PI * 7) / 6, 0.96);
 };
 
 const create_d6_geometry = function(radius) {
-  var vertices = [
+  const vertices = [
     [-1, -1, -1],
     [1, -1, -1],
     [1, 1, -1],
@@ -389,7 +405,8 @@ const create_d6_geometry = function(radius) {
     [1, 1, 1],
     [-1, 1, 1],
   ];
-  var faces = [
+
+  const faces = [
     [0, 3, 2, 1, 1],
     [1, 2, 6, 5, 2],
     [0, 1, 5, 4, 3],
@@ -397,11 +414,12 @@ const create_d6_geometry = function(radius) {
     [0, 4, 7, 3, 5],
     [4, 5, 6, 7, 6],
   ];
+
   return create_geom(vertices, faces, radius, 0.1, Math.PI / 4, 0.96);
 };
 
 const create_d8_geometry = function(radius) {
-  var vertices = [
+  const vertices = [
     [1, 0, 0],
     [-1, 0, 0],
     [0, 1, 0],
@@ -409,7 +427,8 @@ const create_d8_geometry = function(radius) {
     [0, 0, 1],
     [0, 0, -1],
   ];
-  var faces = [
+
+  const faces = [
     [0, 2, 4, 1],
     [0, 4, 3, 2],
     [0, 3, 5, 3],
@@ -419,6 +438,7 @@ const create_d8_geometry = function(radius) {
     [1, 2, 5, 7],
     [1, 5, 3, 8],
   ];
+
   return create_geom(vertices, faces, radius, 0, -Math.PI / 4 / 2, 0.965);
 };
 
@@ -427,10 +447,11 @@ const create_d10_geometry = function(radius) {
   const h = 0.105;
   const v = -1;
 
-  var vertices = [];
+  const vertices = [];
 
-  for (let i = 0, b = 0; i < 10; ++i, b += a)
+  for (let i = 0, b = 0; i < 10; ++i, b += a) {
     vertices.push([Math.cos(b), Math.sin(b), h * (i % 2 ? 1 : -1)]);
+  }
 
   vertices.push([0, 0, -1]);
   vertices.push([0, 0, 1]);
@@ -462,9 +483,9 @@ const create_d10_geometry = function(radius) {
 };
 
 const create_d12_geometry = function(radius) {
-  var p = (1 + Math.sqrt(5)) / 2,
-    q = 1 / p;
-  var vertices = [
+  const p = (1 + Math.sqrt(5)) / 2;
+  const q = 1 / p;
+  const vertices = [
     [0, q, p],
     [0, q, -p],
     [0, -q, p],
@@ -486,7 +507,8 @@ const create_d12_geometry = function(radius) {
     [-1, -1, 1],
     [-1, -1, -1],
   ];
-  var faces = [
+
+  const faces = [
     [2, 14, 4, 12, 0, 1],
     [15, 9, 11, 19, 3, 2],
     [16, 10, 17, 7, 6, 3],
@@ -500,12 +522,14 @@ const create_d12_geometry = function(radius) {
     [0, 12, 8, 10, 16, 11],
     [3, 19, 7, 17, 1, 12],
   ];
+
   return create_geom(vertices, faces, radius, 0.2, -Math.PI / 4 / 2, 0.968);
 };
 
 const create_d20_geometry = function(radius) {
-  var t = (1 + Math.sqrt(5)) / 2;
-  var vertices = [
+  const t = (1 + Math.sqrt(5)) / 2;
+
+  const vertices = [
     [-1, t, 0],
     [1, t, 0],
     [-1, -t, 0],
@@ -519,7 +543,8 @@ const create_d20_geometry = function(radius) {
     [-t, 0, -1],
     [-t, 0, 1],
   ];
-  var faces = [
+
+  const faces = [
     [0, 11, 5, 1],
     [0, 5, 1, 2],
     [0, 1, 7, 3],
@@ -541,6 +566,7 @@ const create_d20_geometry = function(radius) {
     [8, 6, 7, 19],
     [9, 8, 1, 20],
   ];
+
   return create_geom(vertices, faces, radius, -0.2, -Math.PI / 4 / 2, 0.955);
 };
 
