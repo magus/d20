@@ -118,7 +118,7 @@ function onMount(container) {
     // Force a roll result
     // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
     // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
-    callback([1, 1, 1, 1]);
+    callback();
   }
 
   function getNotation() {
