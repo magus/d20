@@ -38,7 +38,7 @@ export default function dice_initialize(container) {
 
   DICE_CONTEXT.use_true_random = false;
 
-  function on_set_change(ev) {
+  function on_set_change() {
     set.style.width = set.value.length + 3 + 'ex';
   }
   $listen(set, 'keyup', on_set_change);
@@ -48,10 +48,10 @@ export default function dice_initialize(container) {
   $listen(set, 'mouseup', function(ev) {
     ev.stopPropagation();
   });
-  $listen(set, 'focus', function(ev) {
+  $listen(set, 'focus', function() {
     $set(container, { class: '' });
   });
-  $listen(set, 'blur', function(ev) {
+  $listen(set, 'blur', function() {
     $set(container, { class: 'noselect' });
   });
 
@@ -137,29 +137,35 @@ function setupDice() {
   }
 
   function create_shape(vertices, faces, radius) {
-    var cv = new Array(vertices.length),
-      cf = new Array(faces.length);
-    for (var i = 0; i < vertices.length; ++i) {
-      var v = vertices[i];
+    const cv = new Array(vertices.length);
+    const cf = new Array(faces.length);
+
+    for (let i = 0; i < vertices.length; ++i) {
+      const v = vertices[i];
       cv[i] = new CANNON.Vec3(v.x * radius, v.y * radius, v.z * radius);
     }
-    for (var i = 0; i < faces.length; ++i) {
+
+    for (let i = 0; i < faces.length; ++i) {
       cf[i] = faces[i].slice(0, faces[i].length - 1);
     }
+
     return new CANNON.ConvexPolyhedron(cv, cf);
   }
 
   function make_geom(vertices, faces, radius, tab, af) {
     var geom = new THREE.Geometry();
-    for (var i = 0; i < vertices.length; ++i) {
-      var vertex = vertices[i].multiplyScalar(radius);
+
+    for (let i = 0; i < vertices.length; ++i) {
+      const vertex = vertices[i].multiplyScalar(radius);
       vertex.index = geom.vertices.push(vertex) - 1;
     }
-    for (var i = 0; i < faces.length; ++i) {
-      var ii = faces[i],
-        fl = ii.length - 1;
-      var aa = (Math.PI * 2) / fl;
-      for (var j = 0; j < fl - 2; ++j) {
+
+    for (let i = 0; i < faces.length; ++i) {
+      const ii = faces[i];
+      const fl = ii.length - 1;
+      const aa = (Math.PI * 2) / fl;
+
+      for (let j = 0; j < fl - 2; ++j) {
         geom.faces.push(
           new THREE.Face3(
             ii[0],
@@ -190,49 +196,62 @@ function setupDice() {
         ]);
       }
     }
+
     geom.computeFaceNormals();
     geom.boundingSphere = new THREE.Sphere(new THREE.Vector3(), radius);
+
     return geom;
   }
 
   function chamfer_geom(vectors, faces, chamfer) {
-    var chamfer_vectors = [],
-      chamfer_faces = [],
-      corner_faces = new Array(vectors.length);
-    for (var i = 0; i < vectors.length; ++i) corner_faces[i] = [];
-    for (var i = 0; i < faces.length; ++i) {
-      var ii = faces[i],
-        fl = ii.length - 1;
-      var center_point = new THREE.Vector3();
-      var face = new Array(fl);
-      for (var j = 0; j < fl; ++j) {
-        var vv = vectors[ii[j]].clone();
+    const chamfer_vectors = [];
+    const chamfer_faces = [];
+    const corner_faces = new Array(vectors.length);
+
+    for (let i = 0; i < vectors.length; ++i) corner_faces[i] = [];
+    for (let i = 0; i < faces.length; ++i) {
+      const ii = faces[i];
+      const fl = ii.length - 1;
+      const center_point = new THREE.Vector3();
+      const face = new Array(fl);
+
+      for (let j = 0; j < fl; ++j) {
+        const vv = vectors[ii[j]].clone();
         center_point.add(vv);
         corner_faces[ii[j]].push((face[j] = chamfer_vectors.push(vv) - 1));
       }
+
       center_point.divideScalar(fl);
-      for (var j = 0; j < fl; ++j) {
-        var vv = chamfer_vectors[face[j]];
+
+      for (let j = 0; j < fl; ++j) {
+        const vv = chamfer_vectors[face[j]];
         vv.subVectors(vv, center_point)
           .multiplyScalar(chamfer)
           .addVectors(vv, center_point);
       }
+
       face.push(ii[fl]);
       chamfer_faces.push(face);
     }
-    for (var i = 0; i < faces.length - 1; ++i) {
-      for (var j = i + 1; j < faces.length; ++j) {
-        var pairs = [],
-          lastm = -1;
-        for (var m = 0; m < faces[i].length - 1; ++m) {
-          var n = faces[j].indexOf(faces[i][m]);
+
+    for (let i = 0; i < faces.length - 1; ++i) {
+      for (let j = i + 1; j < faces.length; ++j) {
+        const pairs = [];
+
+        let lastm = -1;
+        for (let m = 0; m < faces[i].length - 1; ++m) {
+          const n = faces[j].indexOf(faces[i][m]);
+
           if (n >= 0 && n < faces[j].length - 1) {
             if (lastm >= 0 && m != lastm + 1) pairs.unshift([i, m], [j, n]);
             else pairs.push([i, m], [j, n]);
+
             lastm = m;
           }
         }
+
         if (pairs.length != 4) continue;
+
         chamfer_faces.push([
           chamfer_faces[pairs[0][0]][pairs[0][1]],
           chamfer_faces[pairs[1][0]][pairs[1][1]],
@@ -242,16 +261,21 @@ function setupDice() {
         ]);
       }
     }
-    for (var i = 0; i < corner_faces.length; ++i) {
-      var cf = corner_faces[i],
-        face = [cf[0]],
-        count = cf.length - 1;
+
+    for (let i = 0; i < corner_faces.length; ++i) {
+      const cf = corner_faces[i];
+      const face = [cf[0]];
+
+      let count = cf.length - 1;
       while (count) {
-        for (var m = faces.length; m < chamfer_faces.length; ++m) {
-          var index = chamfer_faces[m].indexOf(face[face.length - 1]);
+        for (let m = faces.length; m < chamfer_faces.length; ++m) {
+          let index = chamfer_faces[m].indexOf(face[face.length - 1]);
+
           if (index >= 0 && index < 4) {
             if (--index == -1) index = 3;
-            var next_vertex = chamfer_faces[m][index];
+
+            const next_vertex = chamfer_faces[m][index];
+
             if (cf.indexOf(next_vertex) >= 0) {
               face.push(next_vertex);
               break;
@@ -445,16 +469,19 @@ function setupDice() {
   };
 
   this.create_d10_geometry = function(radius) {
-    var a = (Math.PI * 2) / 10,
-      k = Math.cos(a),
-      h = 0.105,
-      v = -1;
+    const a = (Math.PI * 2) / 10;
+    const h = 0.105;
+    const v = -1;
+
     var vertices = [];
-    for (var i = 0, b = 0; i < 10; ++i, b += a)
+
+    for (let i = 0, b = 0; i < 10; ++i, b += a)
       vertices.push([Math.cos(b), Math.sin(b), h * (i % 2 ? 1 : -1)]);
+
     vertices.push([0, 0, -1]);
     vertices.push([0, 0, 1]);
-    var faces = [
+
+    const faces = [
       [5, 7, 11, 0],
       [4, 2, 10, 1],
       [1, 3, 11, 2],
@@ -476,6 +503,7 @@ function setupDice() {
       [9, 8, 0, v],
       [9, 0, 1, v],
     ];
+
     return create_geom(vertices, faces, radius, 0, (Math.PI * 6) / 5, 0.945);
   };
 
@@ -733,16 +761,21 @@ function setupDice() {
   };
 
   this.stringify_notation = function(nn) {
-    var dict = {},
-      notation = '';
-    for (var i in nn.set)
+    const dict = {};
+
+    let notation = '';
+
+    for (let i in nn.set)
       if (!dict[nn.set[i]]) dict[nn.set[i]] = 1;
       else ++dict[nn.set[i]];
-    for (var i in dict) {
+
+    for (let i in dict) {
       if (notation.length) notation += ' + ';
       notation += (dict[i] > 1 ? dict[i] : '') + i;
     }
+
     if (nn.constant) notation += ' + ' + nn.constant;
+
     return notation;
   };
 
@@ -1188,19 +1221,20 @@ function setupDice() {
 
   this.dice_box.prototype.draw_selector = function() {
     this.clear();
-    var step = this.w / 4.5;
+
+    const step = this.w / 4.5;
+
     this.pane = new THREE.Mesh(
       new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1),
       new THREE.MeshPhongMaterial(that.selector_back_colors)
     );
+
     this.pane.receiveShadow = true;
     this.pane.position.set(0, 0, 1);
     this.scene.add(this.pane);
 
-    var mouse_captured = false;
-
-    for (var i = 0, pos = -3; i < that.known_types.length; ++i, ++pos) {
-      var dice = that['create_' + that.known_types[i]]();
+    for (let i = 0, pos = -3; i < that.known_types.length; ++i, ++pos) {
+      const dice = that['create_' + that.known_types[i]]();
       dice.position.set(pos * step, 0, step * 0.5);
       dice.castShadow = true;
       dice.userData = that.known_types[i];
@@ -1242,7 +1276,7 @@ function setupDice() {
     box.rolling = true;
     if (before_roll) before_roll.call(box, vectors, notation, roll);
     else roll();
-  }
+  };
 
   this.dice_box.prototype.bind_mouse = function(
     container,
