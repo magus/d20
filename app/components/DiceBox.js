@@ -515,7 +515,6 @@ DiceBox.prototype.draw_selector = function() {
 };
 
 DiceBox.prototype.throw_dices = function(
-  box,
   vector,
   boost,
   dist,
@@ -523,6 +522,7 @@ DiceBox.prototype.throw_dices = function(
   before_roll,
   after_roll
 ) {
+  var box = this;
   var uat = this.use_adapvite_timestep;
   function roll(request_results) {
     if (after_roll) {
@@ -573,7 +573,6 @@ DiceBox.prototype.bind_mouse = function(
     var boost = Math.sqrt((2500 - time_int) / 2500) * dist * 2;
 
     box.throw_dices(
-      box,
       vector,
       boost,
       dist,
@@ -610,7 +609,6 @@ DiceBox.prototype.start_throw = function(
   var boost = (rnd() + 3) * dist;
 
   box.throw_dices(
-    box,
     vector,
     boost,
     dist,
