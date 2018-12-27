@@ -572,7 +572,7 @@ DiceBox.prototype.bind_mouse = function(
     if (time_int > 2000) time_int = 2000;
     var boost = Math.sqrt((2500 - time_int) / 2500) * dist * 2;
 
-    this.throw_dices(
+    box.throw_dices(
       box,
       vector,
       boost,
@@ -609,7 +609,7 @@ DiceBox.prototype.start_throw = function(
   var dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
   var boost = (rnd() + 3) * dist;
 
-  this.throw_dices(
+  box.throw_dices(
     box,
     vector,
     boost,

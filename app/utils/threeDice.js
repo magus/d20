@@ -3,7 +3,9 @@ import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
 export const DICE_TYPES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
+
 const SCALE = 50;
+
 const material_options = {
   specular: 0x172022,
   color: 0xf0f0f0,
@@ -259,7 +261,10 @@ const create_dice_materials = function(face_labels, size, margin) {
   return materials;
 };
 
-const create_d4_materials = function(size, margin) {
+const create_d4_materials = function() {
+  const size = SCALE / 2;
+  const margin = SCALE * 2;
+
   function create_d4_text(digits: number[], color, back_color) {
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -474,7 +479,7 @@ export const DiceBuilder = {
       this.d4_geometry = create_d4_geometry(SCALE * 1.2);
     if (!this.d4_material)
       this.d4_material = new THREE.MeshFaceMaterial(
-        create_d4_materials(SCALE / 2, SCALE * 2)
+        create_d4_materials()
       );
     return new THREE.Mesh(this.d4_geometry, this.d4_material);
   },
