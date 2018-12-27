@@ -365,23 +365,24 @@ DiceBox.prototype.__animate = function(threadId) {
 
 DiceBox.prototype.clear = function() {
   this.running = false;
-  var dice;
+
+  // Remove all dice
+  let dice;
   while ((dice = this.dices.pop())) {
     this.scene.remove(dice);
     if (dice.body) this.world.remove(dice.body);
   }
+
   if (this.pane) this.scene.remove(this.pane);
+
   this.renderer.render(this.scene, this.camera);
-  var box = this;
-  setTimeout(function() {
-    box.renderer.render(box.scene, box.camera);
-  }, 100);
 };
 
 DiceBox.prototype.prepareDicesForRoll = function(vectors) {
   this.clear();
   this.iteration = 0;
-  for (var i in vectors) {
+
+  for (let i in vectors) {
     this.createDice(
       vectors[i].dice,
       vectors[i].pos,
@@ -493,15 +494,14 @@ DiceBox.prototype.throwDices = function(
 ) {
   this.isShowingSelector = false;
 
-  var box = this;
-  var uat = this.useAdaptiveTimestep;
+  const uat = this.useAdaptiveTimestep;
 
-  function roll(forcedResult) {
+  const roll = (forcedResult) => {
     if (onAfterRoll) {
-      box.clear();
-      box.roll(vectors, forcedResult || notation.result, function(result) {
-        if (onAfterRoll) onAfterRoll.call(box, notation, result);
-        box.rolling = false;
+      this.clear();
+      this.roll(vectors, forcedResult || notation.result, (result) => {
+        if (onAfterRoll) onAfterRoll(notation, result);
+        this.rolling = false;
         this.useAdaptiveTimestep = uat;
       });
     }
@@ -510,12 +510,17 @@ DiceBox.prototype.throwDices = function(
   vector.x /= dist;
   vector.y /= dist;
 
-  const notation = getNotation.call(box);
+  const notation = getNotation();
   if (notation.dice.length === 0) return;
-  var vectors = box.generateVectors(notation, vector, boost);
-  box.rolling = true;
-  if (onBeforeRoll) onBeforeRoll.call(box, vectors, notation, roll);
-  else roll();
+
+  const vectors = this.generateVectors(notation, vector, boost);
+  this.rolling = true;
+
+  if (onBeforeRoll) {
+    onBeforeRoll(vectors, notation, roll);
+  } else {
+    roll();
+  }
 };
 
 DiceBox.prototype.bindMouse = function(

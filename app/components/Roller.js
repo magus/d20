@@ -105,6 +105,10 @@ function onMount(container) {
     box.setupContainer(canvas, { w: 500, h: 300 });
   });
 
+  function getNotation() {
+    return parseNotation(set.value);
+  }
+
   function onBeforeRoll(vectors, notation, callback) {
     console.debug('onBeforeRoll', { vectors, notation, callback });
 
@@ -112,10 +116,6 @@ function onMount(container) {
     // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
     // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
     callback();
-  }
-
-  function getNotation() {
-    return parseNotation(set.value);
   }
 
   function onAfterRoll(notation, result) {
