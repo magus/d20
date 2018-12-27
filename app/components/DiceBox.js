@@ -142,6 +142,7 @@ export default function DiceBox(container, dimentions) {
 DiceBox.prototype.reinit = function(container, dimentions) {
   this.cw = container.clientWidth / 2;
   this.ch = container.clientHeight / 2;
+
   if (dimentions) {
     this.w = dimentions.w;
     this.h = dimentions.h;
@@ -149,11 +150,8 @@ DiceBox.prototype.reinit = function(container, dimentions) {
     this.w = this.cw;
     this.h = this.ch;
   }
+
   this.aspect = Math.min(this.cw / this.w, this.ch / this.h);
-
-  // Update DiceBuilder scale field
-  DiceBuilder.setScale(Math.sqrt(this.w * this.w + this.h * this.h) / 13);
-
   this.renderer.setSize(this.cw * 2, this.ch * 2);
 
   this.wh = this.ch / this.aspect / Math.tan((10 * Math.PI) / 180);

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
 export const DICE_TYPES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
-
+const SCALE = 50;
 const material_options = {
   specular: 0x172022,
   color: 0xf0f0f0,
@@ -468,35 +468,25 @@ const create_d20_geometry = function(radius) {
   return create_geom(vertices, faces, radius, -0.2, -Math.PI / 4 / 2, 0.955);
 };
 
-
-// if scale changes, we may reuse old geometry with wrong scale
-// cache based on scale to avoid bug
-
 export const DiceBuilder = {
-  scale: 50,
-
-  setScale: function(scale: number) {
-    this.scale = scale;
-  },
-
   create_d4: function() {
     if (!this.d4_geometry)
-      this.d4_geometry = create_d4_geometry(this.scale * 1.2);
+      this.d4_geometry = create_d4_geometry(SCALE * 1.2);
     if (!this.d4_material)
       this.d4_material = new THREE.MeshFaceMaterial(
-        create_d4_materials(this.scale / 2, this.scale * 2)
+        create_d4_materials(SCALE / 2, SCALE * 2)
       );
     return new THREE.Mesh(this.d4_geometry, this.d4_material);
   },
 
   create_d6: function() {
     if (!this.d6_geometry)
-      this.d6_geometry = create_d6_geometry(this.scale * 0.9);
+      this.d6_geometry = create_d6_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
         create_dice_materials(
           standart_d20_dice_face_labels,
-          this.scale / 2,
+          SCALE / 2,
           1.0
         )
       );
@@ -504,12 +494,12 @@ export const DiceBuilder = {
   },
 
   create_d8: function() {
-    if (!this.d8_geometry) this.d8_geometry = create_d8_geometry(this.scale);
+    if (!this.d8_geometry) this.d8_geometry = create_d8_geometry(SCALE);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
         create_dice_materials(
           standart_d20_dice_face_labels,
-          this.scale / 2,
+          SCALE / 2,
           1.2
         )
       );
@@ -518,12 +508,12 @@ export const DiceBuilder = {
 
   create_d10: function() {
     if (!this.d10_geometry)
-      this.d10_geometry = create_d10_geometry(this.scale * 0.9);
+      this.d10_geometry = create_d10_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
         create_dice_materials(
           standart_d20_dice_face_labels,
-          this.scale / 2,
+          SCALE / 2,
           1.0
         )
       );
@@ -532,12 +522,12 @@ export const DiceBuilder = {
 
   create_d12: function() {
     if (!this.d12_geometry)
-      this.d12_geometry = create_d12_geometry(this.scale * 0.9);
+      this.d12_geometry = create_d12_geometry(SCALE * 0.9);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
         create_dice_materials(
           standart_d20_dice_face_labels,
-          this.scale / 2,
+          SCALE / 2,
           1.0
         )
       );
@@ -546,12 +536,12 @@ export const DiceBuilder = {
 
   create_d20: function() {
     if (!this.d20_geometry)
-      this.d20_geometry = create_d20_geometry(this.scale);
+      this.d20_geometry = create_d20_geometry(SCALE);
     if (!this.dice_material)
       this.dice_material = new THREE.MeshFaceMaterial(
         create_dice_materials(
           standart_d20_dice_face_labels,
-          this.scale / 2,
+          SCALE / 2,
           1.0
         )
       );
@@ -560,12 +550,12 @@ export const DiceBuilder = {
 
   create_d100: function() {
     if (!this.d10_geometry)
-      this.d10_geometry = create_d10_geometry(this.scale * 0.9);
+      this.d10_geometry = create_d10_geometry(SCALE * 0.9);
     if (!this.d100_material)
       this.d100_material = new THREE.MeshFaceMaterial(
         create_dice_materials(
           standart_d100_dice_face_labels,
-          this.scale / 2,
+          SCALE / 2,
           1.5
         )
       );
