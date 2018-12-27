@@ -1,5 +1,7 @@
 import React from 'react';
+import styled from 'styled-components';
 import * as THREE from 'three';
+
 import CANNON from '~/libs/cannon.min';
 
 import { $id, $set, $firstParent, $listen } from '~/app/utils/dom';
@@ -1357,6 +1359,8 @@ export default class Roller extends React.Component {
   render() {
     return (
       <div>
+        <CanvasContainer id="canvas" />
+
         <div id="info_div" style={{ display: 'none' }}>
           <div className="center_field">
             <span id="label" />
@@ -1387,11 +1391,14 @@ export default class Roller extends React.Component {
             </button>
           </div>
         </div>
-        <div
-          id="canvas"
-          style={{ zIndex: -1, position: 'absolute', top: 0, left: 0 }}
-        />
       </div>
     );
   }
 }
+
+const CanvasContainer = styled.div`
+  z-index: -1;
+  position: absolute;
+  top: 0;
+  left: 0;
+`;
