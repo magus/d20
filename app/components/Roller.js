@@ -23,9 +23,6 @@ function dice_initialize(container) {
   const DICE_CONTEXT = {};
   setupDice.apply(DICE_CONTEXT);
 
-  const loadingText = $id('loading_text');
-  loadingText.parentNode.removeChild(loadingText);
-
   const canvas = $id('canvas');
   canvas.style.width = window.innerWidth - 1 + 'px';
   canvas.style.height = window.innerHeight - 1 + 'px';
@@ -1351,7 +1348,6 @@ function setupDice() {
   };
 }
 
-
 export default class Roller extends React.Component {
   componentDidMount() {
     // Initialize 3d roller
@@ -1361,40 +1357,40 @@ export default class Roller extends React.Component {
   render() {
     return (
       <div>
-        <div className="control_panel">
-            <p id="loading_text">Loading libraries, please wait a bit...</p>
+        <div id="info_div" style={{ display: 'none' }}>
+          <div className="center_field">
+            <span id="label" />
           </div>
-          <div id="info_div" style={{ display: 'none' }}>
-            <div className="center_field">
-              <span id="label" />
-            </div>
-            <div className="center_field">
-              <div className="bottom_field">
-                <span id="labelhelp">
-                  click to continue or tap and drag again
-                </span>
-              </div>
+          <div className="center_field">
+            <div className="bottom_field">
+              <span id="labelhelp">
+                click to continue or tap and drag again
+              </span>
             </div>
           </div>
-          <div id="selector_div" style={{ display: 'none' }}>
-            <div className="center_field">
-              <div id="sethelp">
-                choose your dice set by clicking the dices or by direct input of
-                notation,
-                <br />
-                tap and drag on free space of screen or hit throw button to roll
-              </div>
-            </div>
-            <div className="center_field">
-              <input type="text" id="set" value="4d6" />
+        </div>
+        <div id="selector_div" style={{ display: 'none' }}>
+          <div className="center_field">
+            <div id="sethelp">
+              choose your dice set by clicking the dices or by direct input of
+              notation,
               <br />
-              <button id="clear">clear</button>
-              <button style={{ marginLeft: '0.6em' }} id="throw">
-                throw
-              </button>
+              tap and drag on free space of screen or hit throw button to roll
             </div>
           </div>
-          <div id="canvas" style={{ zIndex: -1, position: 'absolute', top: 0, left: 0 }} />
+          <div className="center_field">
+            <input type="text" id="set" value="4d6" />
+            <br />
+            <button id="clear">clear</button>
+            <button style={{ marginLeft: '0.6em' }} id="throw">
+              throw
+            </button>
+          </div>
+        </div>
+        <div
+          id="canvas"
+          style={{ zIndex: -1, position: 'absolute', top: 0, left: 0 }}
+        />
       </div>
     );
   }
