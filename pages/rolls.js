@@ -101,9 +101,6 @@ class WithSocketInfo extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    // Initialize 3d roller
-    Roller(document.body);
-
     this.props.socket.on(ROLL, msg => this.setState(handleRoll(msg)));
     this.props.socket.on(USERS, msg => this.setState(updateUsers(msg)));
   }
@@ -116,40 +113,7 @@ class WithSocketInfo extends React.Component<Props, State> {
         <Header>d20</Header>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <div className="control_panel">
-            <p id="loading_text">Loading libraries, please wait a bit...</p>
-          </div>
-          <div id="info_div" style={{ display: 'none' }}>
-            <div className="center_field">
-              <span id="label" />
-            </div>
-            <div className="center_field">
-              <div className="bottom_field">
-                <span id="labelhelp">
-                  click to continue or tap and drag again
-                </span>
-              </div>
-            </div>
-          </div>
-          <div id="selector_div" style={{ display: 'none' }}>
-            <div className="center_field">
-              <div id="sethelp">
-                choose your dice set by clicking the dices or by direct input of
-                notation,
-                <br />
-                tap and drag on free space of screen or hit throw button to roll
-              </div>
-            </div>
-            <div className="center_field">
-              <input type="text" id="set" value="4d6" />
-              <br />
-              <button id="clear">clear</button>
-              <button style={{ marginLeft: '0.6em' }} id="throw">
-                throw
-              </button>
-            </div>
-          </div>
-          <div id="canvas" style={{ zIndex: -1, position: 'absolute', top: 0, left: 0 }} />
+        <Roller />
 
         <Result>
 

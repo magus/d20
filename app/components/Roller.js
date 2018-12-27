@@ -1,5 +1,4 @@
-'use strict';
-
+import React from 'react';
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
@@ -9,7 +8,7 @@ function getMouseCoords(event) {
   const canvas = $firstParent(event.target, e => e.tagName === 'CANVAS');
   const { top, left } = (canvas && canvas.getBoundingClientRect()) || {};
 
-  var touches = event.changedTouches;
+  const touches = event.changedTouches;
   const ex = touches ? touches[0].clientX : event.clientX;
   const ey = touches ? touches[0].clientY : event.clientY;
 
@@ -19,7 +18,7 @@ function getMouseCoords(event) {
   };
 }
 
-export default function dice_initialize(container) {
+function dice_initialize(container) {
   // dice.js
   const DICE_CONTEXT = {};
   setupDice.apply(DICE_CONTEXT);
@@ -27,13 +26,13 @@ export default function dice_initialize(container) {
   const loadingText = $id('loading_text');
   loadingText.parentNode.removeChild(loadingText);
 
-  var canvas = $id('canvas');
+  const canvas = $id('canvas');
   canvas.style.width = window.innerWidth - 1 + 'px';
   canvas.style.height = window.innerHeight - 1 + 'px';
-  var label = $id('label');
-  var set = $id('set');
-  var selector_div = $id('selector_div');
-  var info_div = $id('info_div');
+  const label = $id('label');
+  const set = $id('set');
+  const selector_div = $id('selector_div');
+  const info_div = $id('info_div');
   on_set_change();
 
   DICE_CONTEXT.use_true_random = false;
@@ -41,6 +40,7 @@ export default function dice_initialize(container) {
   function on_set_change() {
     set.style.width = set.value.length + 3 + 'ex';
   }
+
   $listen(set, 'keyup', on_set_change);
   $listen(set, 'mousedown', function(ev) {
     ev.stopPropagation();
@@ -126,15 +126,11 @@ export default function dice_initialize(container) {
 }
 
 function setupDice() {
-  var random_storage = [];
   this.use_true_random = true;
   this.frame_rate = 1 / 60;
 
   const that = this;
-
-  function rnd() {
-    return random_storage.length ? random_storage.pop() : Math.random();
-  }
+  const rnd = () => Math.random();
 
   function create_shape(vertices, faces, radius) {
     const cv = new Array(vertices.length);
@@ -1353,4 +1349,53 @@ function setupDice() {
       after_roll
     );
   };
+}
+
+
+export default class Roller extends React.Component {
+  componentDidMount() {
+    // Initialize 3d roller
+    dice_initialize(document.body);
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="control_panel">
+            <p id="loading_text">Loading libraries, please wait a bit...</p>
+          </div>
+          <div id="info_div" style={{ display: 'none' }}>
+            <div className="center_field">
+              <span id="label" />
+            </div>
+            <div className="center_field">
+              <div className="bottom_field">
+                <span id="labelhelp">
+                  click to continue or tap and drag again
+                </span>
+              </div>
+            </div>
+          </div>
+          <div id="selector_div" style={{ display: 'none' }}>
+            <div className="center_field">
+              <div id="sethelp">
+                choose your dice set by clicking the dices or by direct input of
+                notation,
+                <br />
+                tap and drag on free space of screen or hit throw button to roll
+              </div>
+            </div>
+            <div className="center_field">
+              <input type="text" id="set" value="4d6" />
+              <br />
+              <button id="clear">clear</button>
+              <button style={{ marginLeft: '0.6em' }} id="throw">
+                throw
+              </button>
+            </div>
+          </div>
+          <div id="canvas" style={{ zIndex: -1, position: 'absolute', top: 0, left: 0 }} />
+      </div>
+    );
+  }
 }
