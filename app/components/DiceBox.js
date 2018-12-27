@@ -3,9 +3,8 @@ import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
 import DICE from '~/app/utils/DICE';
-import rand from '~/app/utils/rand';
+import rand, { randVector } from '~/app/utils/rand';
 import { $listen, $canvasMouseCoords } from '~/app/utils/dom';
-import { randVector } from '~/app/utils/geometry';
 import {
   DiceBuilder,
   readDices,
