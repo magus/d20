@@ -1,3 +1,4 @@
+// @flow
 import type { DieRollType2 } from '~/app/types';
 
 import React from 'react';
@@ -18,12 +19,10 @@ const stringifyNotation = function(notation: DieRollType2[]): string {
     ++dict[key];
   };
 
-  for (let i in notation) {
-    const roll = notation[i];
-
+  notation.forEach(roll => {
     if (roll.error) {
       incDict(roll.original);
-    } else {
+    } else if (roll.d) {
       roll.d.forEach(d => {
         if (roll.mod) {
           const mod = roll.mod < 0 ? roll.mod : `+${roll.mod}`;
@@ -32,8 +31,10 @@ const stringifyNotation = function(notation: DieRollType2[]): string {
           incDict(d);
         }
       });
+    } else {
+      throw new Error(`invalid roll: ${JSON.stringify(roll)}`);
     }
-  }
+  });
 
   const rolls = Object.keys(dict).map(roll => {
     const count = dict[roll];
@@ -131,6 +132,13 @@ function onMount(container) {
   const canvasContainer = $id('canvasContainer');
   const notationInput = $id('notationInput');
 
+  if (!container) throw new Error('container required');
+  if (!canvasContainer) throw new Error('canvas container required');
+  if (!notationInput) throw new Error('notation input required');
+  if (!(notationInput instanceof HTMLInputElement)) {
+    throw new Error('notation input must be input element');
+  }
+
   function handleNotationChange(ev) {
     console.debug('handleNotationChange', { ev });
   }
@@ -186,6 +194,7 @@ function onMount(container) {
   $listen(container, 'mouseup', function(ev) {
     ev.stopPropagation();
 
+    // $FlowFixMe
     if (!box.isShowingSelector && !box.rolling) {
       box.showSelector();
       return;
@@ -203,12 +212,19 @@ function onMount(container) {
   box.showSelector();
 }
 
-
 // state reducers
-const setDiceNotation = (diceNotation: string) => () => ({  diceNotation });
+const setDiceNotation = (diceNotation: string) => () => ({ diceNotation });
 
-export default class Roller extends React.Component {
-  constructor(props) {
+type Props = {};
+
+type State = { diceNotation: string };
+
+export default class Roller extends React.Component<Props, State> {
+  containerRef: { current: null | HTMLElement };
+
+  handleDiceNotation: (e: Event) => void;
+
+  constructor(props: Props) {
     super(props);
 
     this.containerRef = React.createRef();
@@ -217,8 +233,14 @@ export default class Roller extends React.Component {
       diceNotation: 'd20',
     };
 
-    this.handleDiceNotation = (e) => {
-      this.setState(setDiceNotation(e.target.value));
+    this.handleDiceNotation = e => {
+      const target = e.target;
+
+      if (!(target instanceof HTMLInputElement)) {
+        throw new Error('handleDiceNotation expects input element');
+      }
+
+      this.setState(setDiceNotation(target.value));
     };
   }
 

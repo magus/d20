@@ -133,6 +133,8 @@ export default function DiceBox(
 }
 
 DiceBox.prototype.setupContainer = function(container, dimensions) {
+  if (!container) throw new Error('container required');
+
   this.cw = container.clientWidth;
   this.ch = container.clientHeight;
 
@@ -548,6 +550,8 @@ DiceBox.prototype.bindMouse = function(
   onBeforeRoll,
   onAfterRoll
 ) {
+  if (!container) throw new Error('container required');
+
   $listen(container, 'mousedown touchstart', ev => {
     this.mouseTime = new Date().getTime();
     this.mouseStart = $canvasMouseCoords(ev);
@@ -557,14 +561,14 @@ DiceBox.prototype.bindMouse = function(
     if (this.rolling) return;
     if (this.mouseStart === undefined) return;
 
-    ev.stopPropagation();
-
+    const { mouseStart } = this;
     const m = $canvasMouseCoords(ev);
     const vector = {
-      x: m.x - this.mouseStart.x,
-      y: -(m.y - this.mouseStart.y),
+      x: m.x - mouseStart.x,
+      y: -(m.y - mouseStart.y),
     };
 
+    ev.stopPropagation();
     this.mouseStart = undefined;
 
     const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
@@ -592,6 +596,8 @@ DiceBox.prototype.bindThrow = function(
   onBeforeRoll,
   onAfterRoll
 ) {
+  if (!button) throw new Error('button required');
+
   $listen(button, 'mouseup touchend', ev => {
     ev.stopPropagation();
     this.startThrow(getNotation, onBeforeRoll, onAfterRoll);
