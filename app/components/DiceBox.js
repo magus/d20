@@ -195,11 +195,11 @@ DiceBox.prototype.setupContainer = function(container, dimensions) {
   this.renderer.render(this.scene, this.camera);
 };
 
-DiceBox.prototype.generateVectors = function(notation, vector, boost) {
+DiceBox.prototype.generateVectors = function(dices, vector, boost) {
   const vectors = [];
 
-  for (let i in notation.dice) {
-    const dice = notation.dice[i];
+  for (let i in dices) {
+    const dice = dices[i];
     const vec = randVector(vector);
     const pos = {
       x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
@@ -397,9 +397,9 @@ DiceBox.prototype.roll = function(vectors, values, callback) {
 
   if (values !== undefined && values.length) {
     this.useAdaptiveTimestep = false;
-    const res = this.emulateThrow();
+    const throwResult = this.emulateThrow();
     this.prepareDicesForRoll(vectors);
-    for (let i in res) shiftDiceFaces(this.dices[i], values[i], res[i]);
+    for (let i in throwResult) shiftDiceFaces(this.dices[i], values[i], throwResult[i]);
   }
 
   this.callback = callback;
@@ -491,29 +491,42 @@ DiceBox.prototype.throwDices = function(
   onBeforeRoll,
   onAfterRoll
 ) {
+  this.rolling = true;
   this.isShowingSelector = false;
+
+  vector.x /= dist;
+  vector.y /= dist;
 
   const uat = this.useAdaptiveTimestep;
 
-  const roll = (forcedResult) => {
+  const notation = getNotation();
+  const allDice = [];
+  const forcedResults = [];
+  notation.forEach((roll) => {
+    if (roll.error) return;
+
+    roll.d.forEach((d, i) => {
+      const index = allDice.push(d) - 1;
+      if (roll.result[i]) {
+        forcedResults[index] = roll.result[i];
+      }
+    })
+  });
+
+  if (allDice.length === 0) return;
+
+  const vectors = this.generateVectors(allDice, vector, boost);
+
+  const roll = (overrideResults) => {
     if (onAfterRoll) {
       this.clear();
-      this.roll(vectors, forcedResult || notation.result, (result) => {
+      this.roll(vectors, overrideResults || forcedResults, (result) => {
         if (onAfterRoll) onAfterRoll(notation, result);
         this.rolling = false;
         this.useAdaptiveTimestep = uat;
       });
     }
   }
-
-  vector.x /= dist;
-  vector.y /= dist;
-
-  const notation = getNotation();
-  if (notation.dice.length === 0) return;
-
-  const vectors = this.generateVectors(notation, vector, boost);
-  this.rolling = true;
 
   if (onBeforeRoll) {
     onBeforeRoll(vectors, notation, roll);

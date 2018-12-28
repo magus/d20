@@ -1,3 +1,5 @@
+import type { DieRollType2 } from '~/app/types';
+
 import React from 'react';
 import styled from 'styled-components';
 
@@ -5,63 +7,124 @@ import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
 import { $id, $set, $listen } from '~/app/utils/dom';
 
-const stringifyNotation = function(notation) {
+const ROLLS_SPLIT_REGEX = /\s+\+\s+/;
+const DICE_NOTATION_REGEX = /(.*?)(\d*)(d\d+)(\s*[+-]\s*\d+){0,1}(@([\d,]+)*){0,1}(.*?)$/i;
+const DICE_RESULT_REGEX = /\d+/;
+
+const stringifyNotation = function(notation: DieRollType2[]): string {
   const dict = {};
+  const incDict = key => {
+    if (!dict[key]) dict[key] = 0;
+    ++dict[key];
+  };
 
-  let output = '';
+  for (let i in notation) {
+    const roll = notation[i];
 
-  for (let i in notation.dice)
-    if (!dict[notation.dice[i]]) dict[notation.dice[i]] = 1;
-    else ++dict[notation.dice[i]];
-
-  for (let i in dict) {
-    if (output.length) output += ' + ';
-    output += (dict[i] > 1 ? dict[i] : '') + i;
+    if (roll.error) {
+      incDict(roll.original);
+    } else {
+      roll.d.forEach(d => {
+        if (roll.mod) {
+          const mod = roll.mod < 0 ? roll.mod : `+${roll.mod}`;
+          incDict(`${d}${mod}`);
+        } else {
+          incDict(d);
+        }
+      });
+    }
   }
 
-  if (notation.constant) output += ' + ' + notation.constant;
+  const rolls = Object.keys(dict).map(roll => {
+    const count = dict[roll];
+    if (count === 1) return roll;
+    return `${count}${roll}`;
+  });
 
-  return output;
+  return rolls.join(' + ');
 };
 
 // Parse standard dice notation
 // Examples
-// d20        [d20]
-// d20-2      -2 + [d20]
-// 4d6        [d6, d6, d6, d6]
-// 2d8+4      +4 + [d8, d8]
-// 4d6 @ 6 6  [6, 6, d6, d6]
-const parseNotation = function(notation) {
-  const no = notation.split('@');
-  const dr0 = /\s*(\d*)(d\d+)(\s*[+-]\s*\d+){0,1}\s*(\+|$)/gi;
-  const dr1 = /(\b)*(\d+)(\b)*/gi;
-  const ret = { dice: [], constant: 0, result: [], error: false };
+// d20                  [d20]
+// d20-2                -2 + [d20]
+// 4d6                  [d6, d6, d6, d6]
+// 2d8+4                +4 + [d8, d8]
+// 4d6@6,6              [6, 6, d6, d6]
+// d20 + 2d4@1,4 + d10  [d20, 1, 4, d10]
+// Errors
+// 2e8-3, 1d4+2 - 4r, ad8-3, rd10, d201, d20&7, d20-A
+const parseNotation = function(notation: string): DieRollType2[] {
+  const parsedRolls = [];
 
-  let res;
+  if (!notation || typeof notation !== 'string') return parsedRolls;
+
+  const splitRolls = notation.trim().split(ROLLS_SPLIT_REGEX);
+
   // Parse each dice notation
-  while ((res = dr0.exec(no[0]))) {
-    let count = parseInt(res[1]);
-    if (res[1] === '') count = 1;
+  splitRolls.forEach((roll, i) => {
+    const original = roll;
+    const parsedDiceNotation = DICE_NOTATION_REGEX.exec(roll);
 
-    const type = res[2];
+    if (!parsedDiceNotation) {
+      parsedRolls[i] = {
+        original,
+        error: new Error('unrecognized dice notation'),
+      };
+      return;
+    }
+
+    // Extra garbage catch-all should be empty
+    if (parsedDiceNotation[1] || parsedDiceNotation[7]) {
+      parsedRolls[i] = {
+        original,
+        error: new Error('contains superfluous characters'),
+      };
+      return;
+    }
+
+    const type = parsedDiceNotation[3];
+
     if (!DICE.Type[type]) {
-      ret.error = true;
-      continue;
+      parsedRolls[i] = { original, error: new Error('invalid dice type') };
+      return;
     }
 
-    while (count--) ret.dice.push(type);
+    // No errors, continue parsing roll
 
-    if (res[3]) {
-      ret.constant += parseInt(res[3].replace(/s/g, ''));
+    let count = parseInt(parsedDiceNotation[2]);
+    if (parsedDiceNotation[2] === '') count = 1;
+
+    const d = [];
+    while (count--) d.push(type);
+
+    let mod = 0;
+    if (parsedDiceNotation[4]) {
+      mod = parseInt(parsedDiceNotation[4].replace(/s/g, ''));
     }
-  }
 
-  // Forced results
-  while ((res = dr1.exec(no[1]))) {
-    ret.result.push(parseInt(res[2]));
-  }
+    // Handle forced results
+    const result = [];
+    const resultNotation = parsedDiceNotation[6];
+    if (resultNotation) {
+      const results = resultNotation.trim().split(',');
 
-  return ret;
+      results.forEach(diceResult => {
+        const match = DICE_RESULT_REGEX.exec(diceResult);
+
+        if (!match) return;
+
+        const forcedResult = parseInt(match[0]);
+        if (!isNaN(forcedResult)) {
+          result.push(forcedResult);
+        }
+      });
+    }
+
+    parsedRolls[i] = { original, d, mod, result };
+  });
+
+  return parsedRolls;
 };
 
 function onMount(container) {
@@ -69,31 +132,31 @@ function onMount(container) {
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
 
-  const set = $id('set');
+  const notationInput = $id('notationInput');
 
   handleSetChange();
 
   function handleSetChange() {
-    set.style.width = set.value.length + 3 + 'ex';
+    notationInput.style.width = notationInput.value.length + 3 + 'ex';
   }
 
-  $listen(set, 'keyup', handleSetChange);
-  $listen(set, 'mousedown', function(ev) {
+  $listen(notationInput, 'keyup', handleSetChange);
+  $listen(notationInput, 'mousedown', function(ev) {
     ev.stopPropagation();
   });
-  $listen(set, 'mouseup', function(ev) {
+  $listen(notationInput, 'mouseup', function(ev) {
     ev.stopPropagation();
   });
-  $listen(set, 'focus', function() {
+  $listen(notationInput, 'focus', function() {
     $set(container, { class: '' });
   });
-  $listen(set, 'blur', function() {
+  $listen(notationInput, 'blur', function() {
     $set(container, { class: 'noselect' });
   });
 
   $listen($id('clear'), 'mouseup touchend', function(ev) {
     ev.stopPropagation();
-    set.value = '0';
+    notationInput.value = '0';
     handleSetChange();
   });
 
@@ -106,7 +169,7 @@ function onMount(container) {
   });
 
   function getNotation() {
-    return parseNotation(set.value);
+    return parseNotation(notationInput.value);
   }
 
   function onBeforeRoll(vectors, notation, callback) {
@@ -135,9 +198,9 @@ function onMount(container) {
 
     const name = box.searchDiceByMouse(ev);
     if (name !== undefined) {
-      const notation = getNotation();
-      notation.dice.push(name);
-      set.value = stringifyNotation(notation);
+      const notation = parseNotation(`${notationInput.value} + ${name}`);
+      const stringNotation = stringifyNotation(notation);
+      notationInput.value = stringNotation;
       handleSetChange();
     }
   });
@@ -158,12 +221,10 @@ export default class Roller extends React.Component {
 
         <div>
           <div className="center_field">
-            <input type="text" id="set" value="d20" />
+            <input type="text" id="notationInput" value="d20" />
             <br />
             <button id="clear">clear</button>
-            <button id="throw">
-              throw
-            </button>
+            <button id="throw">throw</button>
           </div>
         </div>
       </div>
