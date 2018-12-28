@@ -110,20 +110,21 @@ class WithSocketInfo extends React.Component<Props, State> {
 
     return (
       <Page>
-        <Header>d20</Header>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
         <Roller />
 
-        <Result>
-          <Users users={this.state.users} />
+        <Roller.BelowRoller>
+          <Result>
+            <Users users={this.state.users} />
 
-          <button onClick={this._emitRoll}>
-            <FormattedMessage {...messages.roll} />
-          </button>
+            <button onClick={this._emitRoll}>
+              <FormattedMessage {...messages.roll} />
+            </button>
 
-          <Rolls rolls={this.state.rolls} users={this.state.users} />
-        </Result>
+            <Rolls rolls={this.state.rolls} users={this.state.users} />
+          </Result>
+        </Roller.BelowRoller>
       </Page>
     );
   }
@@ -140,13 +141,6 @@ function RollsPage() {
 }
 
 export default pageWithIntl(RollsPage);
-
-const Header = styled.h1`
-  text-align: center;
-  font-size: 24px;
-  font-weight: 400;
-  margin-bottom: 10px;
-`;
 
 const Result = styled.div`
   font-size: 16px;

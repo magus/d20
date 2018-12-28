@@ -14,5 +14,4 @@ export default ({ children }: Props) => (
 
 const Container = styled.div`
   color: #000;
-  margin: 20px;
 `;

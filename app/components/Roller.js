@@ -129,8 +129,8 @@ const parseNotation = function(notation: string): DieRollType2[] {
 
 function onMount(container) {
   const canvas = $id('canvas');
-  canvas.style.width = window.innerWidth + 'px';
-  canvas.style.height = window.innerHeight + 'px';
+  canvas.style.width = container.clientWidth + 'px';
+  canvas.style.height = container.clientHeight + 'px';
 
   const notationInput = $id('notationInput');
 
@@ -152,12 +152,6 @@ function onMount(container) {
   });
   $listen(notationInput, 'blur', function() {
     $set(container, { class: 'noselect' });
-  });
-
-  $listen($id('clear'), 'mouseup touchend', function(ev) {
-    ev.stopPropagation();
-    notationInput.value = '0';
-    handleSetChange();
   });
 
   const box = new DiceBox(canvas, { w: 500, h: 300 });
@@ -209,32 +203,47 @@ function onMount(container) {
 }
 
 export default class Roller extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.containerRef = React.createRef();
+  }
+
   componentDidMount() {
     // Initialize 3d roller
-    onMount(document.body);
+    onMount(this.containerRef.current);
+
+    // TODO: Handle easy way to clear inputs
   }
 
   render() {
     return (
-      <div>
+      <Container ref={this.containerRef}>
+        <input type="text" id="notationInput" value="d20" />
+        <button id="throw">throw</button>
         <CanvasContainer id="canvas" />
-
-        <div>
-          <div className="center_field">
-            <input type="text" id="notationInput" value="d20" />
-            <br />
-            <button id="clear">clear</button>
-            <button id="throw">throw</button>
-          </div>
-        </div>
-      </div>
+      </Container>
     );
   }
 }
 
-const CanvasContainer = styled.div`
+Roller.Height = 300;
+
+Roller.BelowRoller = styled.div`
+  height: calc(100% - ${Roller.Height}px);
+  width: 100%;
+  position: absolute;
+  top: ${Roller.Height}px;
+  left: 0;
+`;
+
+const Container = styled.div`
   z-index: -1;
   position: absolute;
   top: 0;
   left: 0;
+  height: ${Roller.Height}px;
+  width: 100%;
 `;
+
+const CanvasContainer = styled.div``;
