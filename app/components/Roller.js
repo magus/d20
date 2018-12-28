@@ -264,7 +264,7 @@ export default class Roller extends React.Component<Props, State> {
           value={diceNotation}
           onChange={this.handleDiceNotation}
         />
-        <button id="throw">throw${window.devicePixelRatio}</button>
+        <button id="throw">throw</button>
       </Container>
     );
   }
