@@ -229,24 +229,8 @@ const CanvasHeight = 300;
 const DiceNotationPadding = 20;
 const DiceNotationBorder = 2;
 const DiceNotationLineHeight = 46;
-const DiceNotationHeight = DiceNotationBorder * 2 + DiceNotationLineHeight;
-const Height = CanvasHeight + DiceNotationHeight;
-
-Roller.BelowRoller = styled.div`
-  height: calc(100% - ${Height}px);
-  width: 100%;
-  position: absolute;
-  top: ${Height}px;
-  left: 0;
-`;
 
 const Container = styled.div`
-  z-index: -1;
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: ${Height}px;
-  width: 100%;
 `;
 
 const CanvasContainer = styled.div`

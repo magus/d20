@@ -114,7 +114,7 @@ class WithSocketInfo extends React.Component<Props, State> {
 
         <Roller />
 
-        <Roller.BelowRoller>
+        <BelowRoller>
           <Result>
             <Users users={this.state.users} />
 
@@ -124,7 +124,7 @@ class WithSocketInfo extends React.Component<Props, State> {
 
             <Rolls rolls={this.state.rolls} users={this.state.users} />
           </Result>
-        </Roller.BelowRoller>
+        </BelowRoller>
       </Page>
     );
   }
@@ -141,6 +141,8 @@ function RollsPage() {
 }
 
 export default pageWithIntl(RollsPage);
+
+const BelowRoller = styled.div``;
 
 const Result = styled.div`
   font-size: 16px;
