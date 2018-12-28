@@ -115,8 +115,9 @@ const parseNotation = function(notation: string): DieRollType2[] {
 
         if (!match) return;
 
-        const forcedResult = parseInt(match[0]);
+        let forcedResult = parseInt(match[0]);
         if (!isNaN(forcedResult)) {
+          if (type === DICE.Type.d100) forcedResult /= 10;
           result.push(forcedResult);
         }
       });

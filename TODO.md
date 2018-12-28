@@ -1,6 +1,4 @@
 # TODO
-- allow d100@80 (notation should convert 80 to 8 for d100)
-
 - default to `new roll` mode
 - click dice to build notation
 

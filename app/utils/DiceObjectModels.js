@@ -100,6 +100,7 @@ export function shiftDiceFaces(dice: Dice, value: number, res: number) {
   const r = DICE.Range[dice.type];
 
   if (!(value >= r[0] && value <= r[1])) return;
+  if (dice.type === DICE.Type.d100) res /= 10;
 
   const num = value - res;
   const geom = dice.geometry.clone();

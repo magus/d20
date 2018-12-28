@@ -516,7 +516,7 @@ DiceBox.prototype.throwDices = function(
 
     roll.d.forEach((d, i) => {
       const index = allDice.push(d) - 1;
-      if (roll.result[i]) {
+      if (typeof roll.result[i] === 'number') {
         forcedResults[index] = roll.result[i];
       }
     });
