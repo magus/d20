@@ -135,8 +135,8 @@ export default function DiceBox(
 DiceBox.prototype.setupContainer = function(container, dimensions) {
   if (!container) throw new Error('container required');
 
-  this.cw = container.clientWidth;
-  this.ch = container.clientHeight;
+  this.cw = container.clientWidth / 2;
+  this.ch = container.clientHeight / 2;
 
   if (dimensions) {
     this.w = dimensions.w;
@@ -198,7 +198,7 @@ DiceBox.prototype.setupContainer = function(container, dimensions) {
   this.camera.position.z = this.wh;
 
   // Render scene with camera
-  this.renderer.setSize(this.cw, this.ch);
+  this.renderer.setSize(this.cw * 2, this.ch * 2);
   this.renderer.render(this.scene, this.camera);
 };
 
