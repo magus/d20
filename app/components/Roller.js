@@ -134,13 +134,11 @@ function onMount(container) {
 
   const notationInput = $id('notationInput');
 
-  handleSetChange();
-
-  function handleSetChange() {
-    notationInput.style.width = notationInput.value.length + 3 + 'ex';
+  function handleNotationChange(ev) {
+    console.debug('handleNotationChange', { ev });
   }
 
-  $listen(notationInput, 'keyup', handleSetChange);
+  $listen(notationInput, 'keyup', handleNotationChange);
   $listen(notationInput, 'mousedown', function(ev) {
     ev.stopPropagation();
   });
@@ -195,7 +193,7 @@ function onMount(container) {
       const notation = parseNotation(`${notationInput.value} + ${name}`);
       const stringNotation = stringifyNotation(notation);
       notationInput.value = stringNotation;
-      handleSetChange();
+      handleNotationChange();
     }
   });
 
@@ -218,22 +216,27 @@ export default class Roller extends React.Component {
 
   render() {
     return (
-      <Container ref={this.containerRef}>
-        <input type="text" id="notationInput" value="d20" />
+      <Container>
+        <CanvasContainer id="canvas" ref={this.containerRef} />
+        <DiceNotation type="text" id="notationInput" value="d20" />
         <button id="throw">throw</button>
-        <CanvasContainer id="canvas" />
       </Container>
     );
   }
 }
 
-Roller.Height = 300;
+const CanvasHeight = 300;
+const DiceNotationPadding = 20;
+const DiceNotationBorder = 2;
+const DiceNotationLineHeight = 46;
+const DiceNotationHeight = DiceNotationBorder * 2 + DiceNotationLineHeight;
+const Height = CanvasHeight + DiceNotationHeight;
 
 Roller.BelowRoller = styled.div`
-  height: calc(100% - ${Roller.Height}px);
+  height: calc(100% - ${Height}px);
   width: 100%;
   position: absolute;
-  top: ${Roller.Height}px;
+  top: ${Height}px;
   left: 0;
 `;
 
@@ -242,8 +245,25 @@ const Container = styled.div`
   position: absolute;
   top: 0;
   left: 0;
-  height: ${Roller.Height}px;
+  height: ${Height}px;
   width: 100%;
 `;
 
-const CanvasContainer = styled.div``;
+const CanvasContainer = styled.div`
+  height: ${CanvasHeight}px;
+  width: 100%;
+`;
+
+const DiceNotation = styled.input`
+  width: calc(
+    100% - ${2 * DiceNotationPadding}px - ${2 * DiceNotationBorder}px
+  );
+  padding: 0 ${DiceNotationPadding}px;
+  margin: 0;
+  border: ${DiceNotationBorder}px solid initial;
+
+  text-align: center;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: ${DiceNotationLineHeight}px;
+`;
