@@ -128,15 +128,19 @@ const parseNotation = function(notation: string): DieRollType2[] {
 };
 
 function onMount(container) {
-  const canvas = $id('canvas');
-  canvas.style.width = container.clientWidth + 'px';
-  canvas.style.height = container.clientHeight + 'px';
-
+  const canvasContainer = $id('canvasContainer');
   const notationInput = $id('notationInput');
 
   function handleNotationChange(ev) {
     console.debug('handleNotationChange', { ev });
   }
+
+  function fitCanvasToContainer() {
+    canvasContainer.style.width = container.clientWidth + 'px';
+    canvasContainer.style.height = container.clientHeight + 'px';
+  }
+
+  fitCanvasToContainer();
 
   $listen(notationInput, 'keyup', handleNotationChange);
   $listen(notationInput, 'mousedown', function(ev) {
@@ -152,12 +156,11 @@ function onMount(container) {
     $set(container, { class: 'noselect' });
   });
 
-  const box = new DiceBox(canvas, { w: 500, h: 300 });
+  const box = new DiceBox(canvasContainer, { w: 500, h: 300 });
 
   $listen(window, 'resize', function() {
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-    box.setupContainer(canvas, { w: 500, h: 300 });
+    fitCanvasToContainer();
+    box.setupContainer(canvasContainer, { w: 500, h: 300 });
   });
 
   function getNotation() {
@@ -200,11 +203,23 @@ function onMount(container) {
   box.showSelector();
 }
 
+
+// state reducers
+const setDiceNotation = (diceNotation: string) => () => ({  diceNotation });
+
 export default class Roller extends React.Component {
   constructor(props) {
     super(props);
 
     this.containerRef = React.createRef();
+
+    this.state = {
+      diceNotation: 'd20',
+    };
+
+    this.handleDiceNotation = (e) => {
+      this.setState(setDiceNotation(e.target.value));
+    };
   }
 
   componentDidMount() {
@@ -215,11 +230,13 @@ export default class Roller extends React.Component {
   }
 
   render() {
+    const { diceNotation } = this.state;
+
     return (
       <Container>
-        <CanvasContainer id="canvas" ref={this.containerRef} />
-        <DiceNotation type="text" id="notationInput" value="d20" />
-        <button id="throw">throw</button>
+        <CanvasContainer id="canvasContainer" ref={this.containerRef} />
+        <DiceNotation type="text" id="notationInput" value={diceNotation} onChange={this.handleDiceNotation} />
+        <button id="throw">throw${window.devicePixelRatio}</button>
       </Container>
     );
   }
