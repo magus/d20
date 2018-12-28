@@ -64,7 +64,9 @@ export default function DiceBox(
   container.appendChild(this.renderer.domElement);
 
   // Set pixel ratio for q-u-a-l-i-t-y
-  this.renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+  this.renderer.setPixelRatio(
+    window.devicePixelRatio ? window.devicePixelRatio : 1
+  );
 
   this.renderer.shadowMap.enabled = true;
   this.renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -402,7 +404,9 @@ DiceBox.prototype.roll = function(vectors, values, callback) {
     this.useAdaptiveTimestep = false;
     const throwResult = this.emulateThrow();
     this.prepareDicesForRoll(vectors);
-    for (let i in throwResult) shiftDiceFaces(this.dices[i], values[i], throwResult[i]);
+    for (let i in throwResult) {
+      shiftDiceFaces(this.dices[i], values[i], throwResult[i]);
+    }
   }
 
   this.callback = callback;
@@ -505,7 +509,7 @@ DiceBox.prototype.throwDices = function(
   const notation = getNotation();
   const allDice = [];
   const forcedResults = [];
-  notation.forEach((roll) => {
+  notation.forEach(roll => {
     if (roll.error) return;
 
     roll.d.forEach((d, i) => {
@@ -513,23 +517,23 @@ DiceBox.prototype.throwDices = function(
       if (roll.result[i]) {
         forcedResults[index] = roll.result[i];
       }
-    })
+    });
   });
 
   if (allDice.length === 0) return;
 
   const vectors = this.generateVectors(allDice, vector, boost);
 
-  const roll = (overrideResults) => {
+  const roll = overrideResults => {
     if (onAfterRoll) {
       this.clear();
-      this.roll(vectors, overrideResults || forcedResults, (result) => {
+      this.roll(vectors, overrideResults || forcedResults, result => {
         if (onAfterRoll) onAfterRoll(notation, result);
         this.rolling = false;
         this.useAdaptiveTimestep = uat;
       });
     }
-  }
+  };
 
   if (onBeforeRoll) {
     onBeforeRoll(vectors, notation, roll);

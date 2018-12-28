@@ -235,7 +235,12 @@ export default class Roller extends React.Component {
     return (
       <Container>
         <CanvasContainer id="canvasContainer" ref={this.containerRef} />
-        <DiceNotation type="text" id="notationInput" value={diceNotation} onChange={this.handleDiceNotation} />
+        <DiceNotation
+          type="text"
+          id="notationInput"
+          value={diceNotation}
+          onChange={this.handleDiceNotation}
+        />
         <button id="throw">throw${window.devicePixelRatio}</button>
       </Container>
     );
@@ -247,8 +252,7 @@ const DiceNotationPadding = 20;
 const DiceNotationBorder = 2;
 const DiceNotationLineHeight = 46;
 
-const Container = styled.div`
-`;
+const Container = styled.div``;
 
 const CanvasContainer = styled.div`
   height: ${CanvasHeight}px;
