@@ -63,6 +63,9 @@ export default function DiceBox(
   // Setup DOM element for renderer
   container.appendChild(this.renderer.domElement);
 
+  // Set pixel ratio for q-u-a-l-i-t-y
+  this.renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+
   this.renderer.shadowMap.enabled = true;
   this.renderer.shadowMap.type = THREE.PCFShadowMap;
   this.renderer.setClearColor(0xffffff, 1);
@@ -128,8 +131,8 @@ export default function DiceBox(
 }
 
 DiceBox.prototype.setupContainer = function(container, dimensions) {
-  this.cw = container.clientWidth / 2;
-  this.ch = container.clientHeight / 2;
+  this.cw = container.clientWidth;
+  this.ch = container.clientHeight;
 
   if (dimensions) {
     this.w = dimensions.w;
@@ -191,7 +194,7 @@ DiceBox.prototype.setupContainer = function(container, dimensions) {
   this.camera.position.z = this.wh;
 
   // Render scene with camera
-  this.renderer.setSize(this.cw * 2, this.ch * 2);
+  this.renderer.setSize(this.cw, this.ch);
   this.renderer.render(this.scene, this.camera);
 };
 
