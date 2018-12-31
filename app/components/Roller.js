@@ -194,7 +194,7 @@ function onMount(container) {
     }
 
     const name = box.searchDiceByMouse(ev);
-    if (name !== undefined) {
+    if (name) {
       const notation = parseNotation(`${notationInput.value} + ${name}`);
       const stringNotation = stringifyNotation(notation);
       notationInput.value = stringNotation;

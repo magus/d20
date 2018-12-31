@@ -448,7 +448,7 @@ DiceBox.prototype.__animateSelector = function(threadId) {
 
 DiceBox.prototype.searchDiceByMouse = function(ev) {
   const m = $canvasMouseCoords(ev);
-  const intersects = new THREE.Raycaster(
+  const raycaster = new THREE.Raycaster(
     this.camera.position,
     new THREE.Vector3(
       (m.x - this.cw) / this.aspect,
@@ -457,8 +457,16 @@ DiceBox.prototype.searchDiceByMouse = function(ev) {
     )
       .sub(this.camera.position)
       .normalize()
-  ).intersectObjects(this.dices);
-  if (intersects.length) return intersects[0].object.userData;
+  );
+
+  const intersects = raycaster.intersectObjects(this.dices);
+
+  if (intersects.length) {
+    const { userData } = intersects[0].object;
+    if (userData.type) return userData.type;
+  }
+
+  return null;
 };
 
 DiceBox.prototype.showSelector = function() {
@@ -481,7 +489,7 @@ DiceBox.prototype.showSelector = function() {
     const dice = DiceBuilder[DICE.AllTypes[i]]();
     dice.position.set(pos * step, 0, step * 0.5);
     dice.castShadow = true;
-    dice.userData = DICE.AllTypes[i];
+    dice.userData = { type: DICE.AllTypes[i] };
     this.dices.push(dice);
     this.scene.add(dice);
   }
