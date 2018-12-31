@@ -1,6 +1,6 @@
 // @flow
 export type DieRollType = { d: number, result: number, mod: number };
-export type DieRollType2 = { original: string, d?: string[], mod?: number, result?: number[], error?: Error };
+export type ParsedDieRollType = { original: string, d?: string[], mod?: number, result?: number[], error?: Error };
 
 // Socket events
 export type RollEvent = {
