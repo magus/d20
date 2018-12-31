@@ -16,11 +16,11 @@ const FPS = 1 / 60;
 const OBJECTS = {
   AmbientLight: 0xf0f5fb,
   SpotLight: 0xefdfd5,
-  ThrowDesk: { color: 0xffffff },
-  SelectDesk: {
+  Desk: {
     color: 0xffffff,
     shininess: 0,
     emissive: 0x000000,
+
   },
 };
 
@@ -177,10 +177,11 @@ DiceBox.prototype.setupContainer = function(container, dimensions) {
 
   // Build new desk
   this.desk = new THREE.Mesh(
-    new THREE.PlaneGeometry(this.w * 2, this.h * 2, 1, 1),
-    new THREE.MeshPhongMaterial(OBJECTS.ThrowDesk)
+    new THREE.PlaneGeometry(this.w * 4, this.h * 4, 1, 1),
+    new THREE.MeshPhongMaterial(OBJECTS.Desk)
   );
   this.desk.receiveShadow = true;
+  this.desk.position.set(0, 0, 1);
 
   // Add desk to scene
   this.scene.add(this.desk);
@@ -379,8 +380,6 @@ DiceBox.prototype.clear = function() {
     if (dice.body) this.world.remove(dice.body);
   }
 
-  if (this.pane) this.scene.remove(this.pane);
-
   this.renderer.render(this.scene, this.camera);
 };
 
@@ -475,15 +474,6 @@ DiceBox.prototype.showSelector = function() {
   this.clear();
 
   const step = this.w / 4.5;
-
-  this.pane = new THREE.Mesh(
-    new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1),
-    new THREE.MeshPhongMaterial(OBJECTS.SelectDesk)
-  );
-
-  this.pane.receiveShadow = true;
-  this.pane.position.set(0, 0, 1);
-  this.scene.add(this.pane);
 
   for (let i = 0, pos = -3; i < DICE.AllTypes.length; ++i, ++pos) {
     const dice = DiceBuilder[DICE.AllTypes[i]]();
