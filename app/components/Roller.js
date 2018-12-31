@@ -144,13 +144,6 @@ function onMount(container) {
     console.debug('handleNotationChange', { ev });
   }
 
-  function fitCanvasToContainer() {
-    canvasContainer.style.width = container.clientWidth + 'px';
-    canvasContainer.style.height = container.clientHeight + 'px';
-  }
-
-  fitCanvasToContainer();
-
   $listen(notationInput, 'keyup', handleNotationChange);
   $listen(notationInput, 'mousedown', function(ev) {
     ev.stopPropagation();
@@ -168,7 +161,6 @@ function onMount(container) {
   const box = new DiceBox(canvasContainer, { w: 500, h: 300 });
 
   $listen(window, 'resize', function() {
-    fitCanvasToContainer();
     box.setupContainer(canvasContainer, { w: 500, h: 300 });
   });
 
