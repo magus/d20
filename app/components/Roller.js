@@ -1,4 +1,7 @@
 // @flow
+import type { ParsedDieRollType } from '~/app/types';
+import type { DOMListener } from '~/app/utils/dom';
+
 import React from 'react';
 import styled from 'styled-components';
 
@@ -15,17 +18,48 @@ type State = { diceNotation: string };
 
 export default class Roller extends React.Component<Props, State> {
   containerRef: { current: null | HTMLElement };
+  notationInputRef: { current: null | HTMLInputElement };
+  listeners: DOMListener[];
   diceBox: any;
 
+  getNotation: () => ParsedDieRollType[];
+  onAfterRoll: (notation: ParsedDieRollType[], result: number[]) => void;
+  onBeforeRoll: (
+    vectors: any,
+    notation: ParsedDieRollType[],
+    callback: (results?: number[]) => void
+  ) => void;
   handleDiceNotation: (e: Event) => void;
 
   constructor(props: Props) {
     super(props);
 
     this.containerRef = React.createRef();
+    this.notationInputRef = React.createRef();
+    this.listeners = [];
+    this.diceBox = null;
 
     this.state = {
       diceNotation: 'd20',
+    };
+
+    this.getNotation = () => {
+      const notationInput = this.notationInputRef.current;
+      const notationString = (notationInput && notationInput.value) || '';
+      return DICE.parse(notationString);
+    };
+
+    this.onAfterRoll = (notation, result) => {
+      console.debug('onAfterRoll', { notation, result });
+    };
+
+    this.onBeforeRoll = (vectors, notation, callback) => {
+      console.debug('onBeforeRoll', { vectors, notation, callback });
+
+      // Force a roll result
+      // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
+      // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
+      callback();
     };
 
     this.handleDiceNotation = e => {
@@ -42,69 +76,62 @@ export default class Roller extends React.Component<Props, State> {
   componentDidMount() {
     // Initialize 3d roller
     const container = this.containerRef.current;
-
-    const canvasContainer = $id('canvasContainer');
-    const notationInput = $id('notationInput');
+    const notationInput = this.notationInputRef.current;
 
     if (!container) throw new Error('container required');
-    if (!canvasContainer) throw new Error('canvas container required');
     if (!notationInput) throw new Error('notation input required');
     if (!(notationInput instanceof HTMLInputElement)) {
       throw new Error('notation input must be input element');
     }
 
-    function handleNotationChange(ev) {
-      console.debug('handleNotationChange', { ev });
-    }
+    this.diceBox = new DiceBox(container, { w: 500, h: 300 });
 
-    $listen(notationInput, 'keyup', handleNotationChange);
+    this.listeners.push(
+      $listen(window, 'resize', () => {
+        this.diceBox.setupContainer(container, { w: 500, h: 300 });
+      })
+    );
 
-    this.diceBox = new DiceBox(canvasContainer, { w: 500, h: 300 });
+    // TODO move to Roller
+    this.diceBox.bindMouse(
+      container,
+      this.getNotation,
+      this.onBeforeRoll,
+      this.onAfterRoll
+    );
+    this.diceBox.bindThrow(
+      $id('throw'),
+      this.getNotation,
+      this.onBeforeRoll,
+      this.onAfterRoll
+    );
 
-    $listen(window, 'resize', () => {
-      this.diceBox.setupContainer(canvasContainer, { w: 500, h: 300 });
-    });
+    this.listeners.push(
+      $listen(container, 'mouseup', ev => {
+        ev.stopPropagation();
 
-    function getNotation() {
-      return DICE.parse(notationInput.value);
-    }
+        if (!this.diceBox.isShowingSelector && !this.diceBox.rolling) {
+          this.diceBox.showSelector();
+          return;
+        }
 
-    function onBeforeRoll(vectors, notation, callback) {
-      console.debug('onBeforeRoll', { vectors, notation, callback });
+        const name = this.diceBox.searchDiceByMouse(ev);
+        if (name) {
+          const notation = DICE.parse(`${notationInput.value} + ${name}`);
+          const stringNotation = DICE.stringify(notation);
+          notationInput.value = stringNotation;
+        }
+      })
+    );
 
-      // Force a roll result
-      // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
-      // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
-      callback();
-    }
-
-    function onAfterRoll(notation, result) {
-      console.debug('onAfterRoll', { notation, result });
-    }
-
-    this.diceBox.bindMouse(container, getNotation, onBeforeRoll, onAfterRoll);
-    this.diceBox.bindThrow($id('throw'), getNotation, onBeforeRoll, onAfterRoll);
-
-    $listen(container, 'mouseup', (ev) => {
-      ev.stopPropagation();
-
-      if (!this.diceBox.isShowingSelector && !this.diceBox.rolling) {
-        this.diceBox.showSelector();
-        return;
-      }
-
-      const name = this.diceBox.searchDiceByMouse(ev);
-      if (name) {
-        const notation = DICE.parse(`${notationInput.value} + ${name}`);
-        const stringNotation = DICE.stringify(notation);
-        notationInput.value = stringNotation;
-        handleNotationChange();
-      }
-    });
-
+    // Show selector
     this.diceBox.showSelector();
 
     // TODO: Handle easy way to clear inputs
+  }
+
+  componentWillUnmount() {
+    this.listeners.forEach(listener => listener.remove());
   }
 
   render() {
@@ -114,10 +141,11 @@ export default class Roller extends React.Component<Props, State> {
       <Container>
         <CanvasContainer id="canvasContainer" ref={this.containerRef} />
         <DiceNotation
-          type="text"
+          ref={this.notationInputRef}
           id="notationInput"
           value={diceNotation}
           onChange={this.handleDiceNotation}
+          type="text"
           autoComplete="off"
           autoCapitalize="off"
           autoCorrect="off"

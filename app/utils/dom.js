@@ -25,12 +25,20 @@ export function $firstParent(
   return null;
 }
 
+type EventHandler = (event: any) => boolean | void;
+export type DOMListener = {
+  element: HTMLElement,
+  events: string[],
+  handler: EventHandler,
+  remove: () => void,
+};
+
 export function $listen(
-  element: Element,
+  element: HTMLElement,
   eventNames: string,
-  handler: (event: any) => boolean | void,
+  handler: EventHandler,
   bubble: boolean = false
-) {
+): DOMListener {
   if (typeof eventNames !== 'string') throw new Error('invalid event name(s)');
   const events = eventNames.split(' ');
   events.forEach(e => element.addEventListener(e, handler, bubble));
