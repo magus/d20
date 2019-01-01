@@ -34,6 +34,17 @@ export function $listen(
   if (typeof eventNames !== 'string') throw new Error('invalid event name(s)');
   const events = eventNames.split(' ');
   events.forEach(e => element.addEventListener(e, handler, bubble));
+
+  // Return an object with a 'remove' method
+  return {
+    element,
+    events,
+    handler,
+    remove: () => {
+      // Remove all handlers
+      events.forEach(e => element.removeEventListener(e, handler, bubble));
+    },
+  };
 }
 
 export function $event(
