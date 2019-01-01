@@ -1,10 +1,16 @@
 // @flow
-import type { Dice } from '~/app/utils/DICE';
+import type { DiceTypes } from '~/app/types';
 
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
 import DICE from '~/app/utils/DICE';
+
+type DiceThreeModel = {
+  type: DiceTypes,
+  castShadow: boolean,
+  body: typeof CANNON.RigidBody,
+} & typeof THREE.Mesh;
 
 const SCALE = 50;
 
@@ -57,7 +63,7 @@ const D100_FACES = [
   '90',
 ];
 
-function readDice(dice: Dice) {
+function readDice(dice: DiceThreeModel) {
   const vector = new THREE.Vector3(0, 0, dice.type === 'd4' ? -1 : 1);
 
   let closestFace;
@@ -86,7 +92,7 @@ function readDice(dice: Dice) {
   return matindex;
 }
 
-export function readDices(dices: Dice[]) {
+export function readDices(dices: DiceThreeModel[]) {
   const values = [];
 
   for (let i = 0, l = dices.length; i < l; ++i) {
@@ -96,13 +102,17 @@ export function readDices(dices: Dice[]) {
   return values;
 }
 
-export function shiftDiceFaces(dice: Dice, value: number, res: number) {
+export function shiftDiceFaces(
+  dice: DiceThreeModel,
+  actualResult: number,
+  forcedResult: number
+) {
   const r = DICE.Range[dice.type];
 
-  if (!(value >= r[0] && value <= r[1])) return;
-  if (dice.type === DICE.Type.d100) res /= 10;
+  if (!(actualResult >= r[0] && actualResult <= r[1])) return;
+  if (dice.type === DICE.Type.d100) forcedResult /= 10;
 
-  const num = value - res;
+  const diff = actualResult - forcedResult;
   const geom = dice.geometry.clone();
 
   for (let i = 0, l = geom.faces.length; i < l; ++i) {
@@ -110,7 +120,7 @@ export function shiftDiceFaces(dice: Dice, value: number, res: number) {
 
     if (matindex === 0) continue;
 
-    matindex += num - 1;
+    matindex += diff - 1;
     while (matindex > r[1]) matindex -= r[1];
     while (matindex < r[0]) matindex += r[1];
     geom.faces[i].materialIndex = matindex + 1;

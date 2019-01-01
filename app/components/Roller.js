@@ -1,5 +1,5 @@
 // @flow
-import type { ParsedDieRollType } from '~/app/types';
+import type { DiceTypes, ParsedDieRollType } from '~/app/types';
 import type { DOMListener } from '~/app/utils/dom';
 
 import React from 'react';
@@ -7,7 +7,9 @@ import styled from 'styled-components';
 
 import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
-import { $id, $listen } from '~/app/utils/dom';
+import { $listen } from '~/app/utils/dom';
+
+const DEFAULT_ROLL = 'd20';
 
 // state reducers
 const setDiceNotation = (diceNotation: string) => () => ({ diceNotation });
@@ -22,14 +24,20 @@ export default class Roller extends React.Component<Props, State> {
   listeners: DOMListener[];
   diceBox: any;
 
+  // state
+  handleDiceNotation: (e: Event) => void;
+
+  // handlers
   getNotation: () => ParsedDieRollType[];
-  onAfterRoll: (notation: ParsedDieRollType[], result: number[]) => void;
-  onBeforeRoll: (
+  handleCreateNewRoll: () => void;
+  handleThrow: () => void;
+  handleDiceClick: (dice: DiceTypes) => void;
+  handleBeforeRoll: (
     vectors: any,
     notation: ParsedDieRollType[],
     callback: (results?: number[]) => void
   ) => void;
-  handleDiceNotation: (e: Event) => void;
+  handleAfterRoll: (notation: ParsedDieRollType[], result: number[]) => void;
 
   constructor(props: Props) {
     super(props);
@@ -40,7 +48,20 @@ export default class Roller extends React.Component<Props, State> {
     this.diceBox = null;
 
     this.state = {
-      diceNotation: 'd20',
+      diceNotation: DEFAULT_ROLL,
+    };
+
+    this.handleCreateNewRoll = () => {
+      this.setState(setDiceNotation(DEFAULT_ROLL));
+      this.diceBox.showSelector();
+    };
+
+    this.handleThrow = () => {
+      this.diceBox.startThrow(
+        this.getNotation,
+        this.handleBeforeRoll,
+        this.handleAfterRoll
+      );
     };
 
     this.getNotation = () => {
@@ -49,15 +70,23 @@ export default class Roller extends React.Component<Props, State> {
       return DICE.parse(notationString);
     };
 
-    this.onAfterRoll = (notation, result) => {
+    this.handleDiceClick = dice => {
+      const notationInput = this.notationInputRef.current;
+      if (!notationInput) return;
+
+      const notation = DICE.parse(`${notationInput.value} + ${dice}`);
+      const stringNotation = DICE.stringify(notation);
+      notationInput.value = stringNotation;
+    };
+
+    this.handleAfterRoll = (notation, result) => {
       console.debug('onAfterRoll', { notation, result });
     };
 
-    this.onBeforeRoll = (vectors, notation, callback) => {
+    this.handleBeforeRoll = (vectors, notation, callback) => {
       console.debug('onBeforeRoll', { vectors, notation, callback });
 
       // Force a roll result
-      // i.e. callback = DiceBox.bindMouse:onBeforeRoll -> roll(forcedResult)
       // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
       callback();
     };
@@ -84,50 +113,24 @@ export default class Roller extends React.Component<Props, State> {
       throw new Error('notation input must be input element');
     }
 
-    this.diceBox = new DiceBox(container, { w: 500, h: 300 });
+    const options = {
+      dimensions: { w: 500, h: 300 },
+      getNotation: this.getNotation,
+      onDiceClick: this.handleDiceClick,
+      onBeforeRoll: this.handleBeforeRoll,
+      onAfterRoll: this.handleAfterRoll,
+    };
+
+    this.diceBox = new DiceBox(container, options);
 
     this.listeners.push(
       $listen(window, 'resize', () => {
-        this.diceBox.setupContainer(container, { w: 500, h: 300 });
+        this.diceBox.setupContainer();
       })
     );
 
-    // TODO move to Roller
-    this.diceBox.bindMouse(
-      container,
-      this.getNotation,
-      this.onBeforeRoll,
-      this.onAfterRoll
-    );
-    this.diceBox.bindThrow(
-      $id('throw'),
-      this.getNotation,
-      this.onBeforeRoll,
-      this.onAfterRoll
-    );
-
-    this.listeners.push(
-      $listen(container, 'mouseup', ev => {
-        ev.stopPropagation();
-
-        if (!this.diceBox.isShowingSelector && !this.diceBox.rolling) {
-          this.diceBox.showSelector();
-          return;
-        }
-
-        const name = this.diceBox.searchDiceByMouse(ev);
-        if (name) {
-          const notation = DICE.parse(`${notationInput.value} + ${name}`);
-          const stringNotation = DICE.stringify(notation);
-          notationInput.value = stringNotation;
-        }
-      })
-    );
-
-    // Show selector
-    this.diceBox.showSelector();
-
-    // TODO: Handle easy way to clear inputs
+    // throw on mount
+    this.handleThrow();
   }
 
   componentWillUnmount() {
@@ -151,7 +154,12 @@ export default class Roller extends React.Component<Props, State> {
           autoCorrect="off"
           spellCheck="false"
         />
-        <button id="throw">throw</button>
+        <button id="throw" onClick={this.handleThrow}>
+          throw
+        </button>
+        <button id="create" onClick={this.handleCreateNewRoll}>
+          create
+        </button>
       </Container>
     );
   }

@@ -1,6 +1,29 @@
 // @flow
+import keyMirror from '~/app/utils/keyMirror';
+
+export const DICE: { [key: string]: string } = keyMirror({
+  d4: true,
+  d6: true,
+  d8: true,
+  d10: true,
+  d12: true,
+  d20: true,
+  d100: true,
+});
+
+// export type DiceTypes = 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100';
+export type DiceTypes = $Keys<typeof DICE>;
+
+export const DICE_TYPES: DiceTypes[] = Object.keys(DICE);
+
 export type DieRollType = { d: number, result: number, mod: number };
-export type ParsedDieRollType = { original: string, d?: string[], mod?: number, result?: number[], error?: Error };
+export type ParsedDieRollType = {
+  original: string,
+  d?: Array<DiceTypes>,
+  mod?: number,
+  result?: Array<number>,
+  error?: Error,
+};
 
 // Socket events
 export type RollEvent = {

@@ -1,4 +1,6 @@
 // @flow
+import type { DiceTypes, ParsedDieRollType } from '~/app/types';
+
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
 
@@ -43,10 +45,25 @@ const DICE_INERTIA = {
   [DICE.Type.d100]: 9,
 };
 
-export default function DiceBox(
-  container: Element,
-  dimensions: { w: number, h: number }
-) {
+type DiceBoxOptions = {
+  dimensions?: { w: number, h: number },
+  getNotation: () => ParsedDieRollType[],
+  onDiceClick?: (dice: DiceTypes) => void,
+  onBeforeRoll: (
+    vectors: any,
+    notation: ParsedDieRollType[],
+    callback: (results?: number[]) => void
+  ) => void,
+  onAfterRoll: (notation: ParsedDieRollType[], result: number[]) => void,
+};
+
+export default function DiceBox(container: HTMLElement, config: DiceBoxOptions) {
+  if (!config) throw new Error('config required');
+  if (!container) throw new Error('dom container required');
+
+  this.container = container;
+  this.config = config;
+
   this.useAdaptiveTimestep = true;
   this.animateSelector = true;
   this.isShowingSelector = true;
@@ -59,20 +76,23 @@ export default function DiceBox(
     ? new THREE.WebGLRenderer({ antialias: true })
     : new THREE.CanvasRenderer({ antialias: true });
 
-  // Setup DOM element for renderer
-  container.appendChild(this.renderer.domElement);
-
+  this.renderer.shadowMap.enabled = true;
+  this.renderer.shadowMap.type = THREE.PCFShadowMap;
+  this.renderer.setClearColor(0xffffff, 1);
   // Set pixel ratio for q-u-a-l-i-t-y
   this.renderer.setPixelRatio(
     window.devicePixelRatio ? window.devicePixelRatio : 1
   );
 
-  this.renderer.shadowMap.enabled = true;
-  this.renderer.shadowMap.type = THREE.PCFShadowMap;
-  this.renderer.setClearColor(0xffffff, 1);
+  // Setup DOM element for renderer
+  container.appendChild(this.renderer.domElement);
 
-  this.setupContainer(container, dimensions);
+  this.setupContainer();
+  this.setupWorld();
+  this.setupListeners();
+}
 
+DiceBox.prototype.setupWorld = function() {
   this.world.gravity.set(0, 0, -9.8 * 800);
   this.world.broadphase = new CANNON.NaiveBroadphase();
   this.world.solver.iterations = 16;
@@ -129,17 +149,78 @@ export default function DiceBox(
   this.running = false;
 
   this.renderer.render(this.scene, this.camera);
-}
+};
 
-DiceBox.prototype.setupContainer = function(container, dimensions) {
-  if (!container) throw new Error('container required');
+DiceBox.prototype.setupListeners = function() {
+  const {
+    getNotation,
+    onDiceClick,
+    onBeforeRoll,
+    onAfterRoll,
+  } = this.config;
 
-  this.cw = container.clientWidth / 2;
-  this.ch = container.clientHeight / 2;
+  $listen(this.container, 'mousedown touchstart', ev => {
+    this.mouseTime = new Date().getTime();
+    this.mouseStart = $canvasMouseCoords(ev);
+    console.debug('setting this.mouseStart', ev);
+    ev.stopPropagation();
+    ev.preventDefault();
+  });
 
-  if (dimensions) {
-    this.w = dimensions.w;
-    this.h = dimensions.h;
+  $listen(this.container, 'mouseup touchend', ev => {
+    console.debug('mouseup touchend', ev);
+
+    if (this.rolling) return;
+    if (!this.mouseStart) return;
+
+    // Grab mouseStart coords and clear for future use
+    const mouseStart = this.mouseStart;
+    this.mouseStart = undefined;
+
+    const coords = $canvasMouseCoords(ev);
+    const vector = {
+      x: coords.x - mouseStart.x,
+      y: -(coords.y - mouseStart.y),
+    };
+
+    const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+    const neglibleMovement = dist < Math.sqrt(this.w * this.h * 0.01);
+
+    // neglible mouse movement, treat as click
+    if (neglibleMovement) {
+      const name = this.searchDiceByMouse(coords);
+      if (name) {
+        if (typeof onDiceClick === 'function') onDiceClick(name);
+      }
+
+      return;
+    }
+
+
+    // non-neglible mouse movement, treat as a roll
+    let duration = new Date().getTime() - this.mouseTime;
+    if (duration > 2000) duration = 2000;
+
+    const boost = Math.sqrt((2500 - duration) / 2500) * dist * 2;
+
+    this.throwDices(
+      vector,
+      boost,
+      dist,
+      getNotation,
+      onBeforeRoll,
+      onAfterRoll
+    );
+  });
+};
+
+DiceBox.prototype.setupContainer = function() {
+  this.cw = this.container.clientWidth / 2;
+  this.ch = this.container.clientHeight / 2;
+
+  if (this.config.dimensions) {
+    this.w = this.config.dimensions.w;
+    this.h = this.config.dimensions.h;
   } else {
     this.w = this.cw;
     this.h = this.ch;
@@ -444,13 +525,12 @@ DiceBox.prototype.__animateSelector = function(threadId) {
   }
 };
 
-DiceBox.prototype.searchDiceByMouse = function(ev) {
-  const m = $canvasMouseCoords(ev);
+DiceBox.prototype.searchDiceByMouse = function(coords) {
   const raycaster = new THREE.Raycaster(
     this.camera.position,
     new THREE.Vector3(
-      (m.x - this.cw) / this.aspect,
-      (m.y - this.ch) / this.aspect,
+      (coords.x - this.cw) / this.aspect,
+      (coords.y - this.ch) / this.aspect,
       this.w / 9
     )
       .sub(this.camera.position)
@@ -539,66 +619,6 @@ DiceBox.prototype.throwDices = function(
   } else {
     roll();
   }
-};
-
-DiceBox.prototype.bindMouse = function(
-  container,
-  getNotation,
-  onBeforeRoll,
-  onAfterRoll
-) {
-  if (!container) throw new Error('container required');
-
-  $listen(container, 'mousedown touchstart', ev => {
-    this.mouseTime = new Date().getTime();
-    this.mouseStart = $canvasMouseCoords(ev);
-  });
-
-  $listen(container, 'mouseup touchend', ev => {
-    if (this.rolling) return;
-    if (this.mouseStart === undefined) return;
-
-    const { mouseStart } = this;
-    const m = $canvasMouseCoords(ev);
-    const vector = {
-      x: m.x - mouseStart.x,
-      y: -(m.y - mouseStart.y),
-    };
-
-    ev.stopPropagation();
-    this.mouseStart = undefined;
-
-    const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
-    if (dist < Math.sqrt(this.w * this.h * 0.01)) return;
-
-    let duration = new Date().getTime() - this.mouseTime;
-    if (duration > 2000) duration = 2000;
-
-    const boost = Math.sqrt((2500 - duration) / 2500) * dist * 2;
-
-    this.throwDices(
-      vector,
-      boost,
-      dist,
-      getNotation,
-      onBeforeRoll,
-      onAfterRoll
-    );
-  });
-};
-
-DiceBox.prototype.bindThrow = function(
-  button,
-  getNotation,
-  onBeforeRoll,
-  onAfterRoll
-) {
-  if (!button) throw new Error('button required');
-
-  $listen(button, 'mouseup touchend', ev => {
-    ev.stopPropagation();
-    this.startThrow(getNotation, onBeforeRoll, onAfterRoll);
-  });
 };
 
 DiceBox.prototype.startThrow = function(
