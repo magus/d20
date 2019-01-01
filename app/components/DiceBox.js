@@ -20,7 +20,6 @@ const OBJECTS = {
     color: 0xffffff,
     shininess: 0,
     emissive: 0x000000,
-
   },
 };
 

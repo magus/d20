@@ -120,7 +120,6 @@ export default class Roller extends React.Component<Props, State> {
           id="notationInput"
           value={diceNotation}
           onChange={this.handleDiceNotation}
-
           autocomplete="off"
           autocapitalize="off"
           autocorrect="off"
