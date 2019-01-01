@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
-import { $id, $set, $listen } from '~/app/utils/dom';
+import { $id, $listen } from '~/app/utils/dom';
 
 function onMount(container) {
   const canvasContainer = $id('canvasContainer');
@@ -22,18 +22,6 @@ function onMount(container) {
   }
 
   $listen(notationInput, 'keyup', handleNotationChange);
-  $listen(notationInput, 'mousedown', function(ev) {
-    ev.stopPropagation();
-  });
-  $listen(notationInput, 'mouseup', function(ev) {
-    ev.stopPropagation();
-  });
-  $listen(notationInput, 'focus', function() {
-    $set(container, { class: '' });
-  });
-  $listen(notationInput, 'blur', function() {
-    $set(container, { class: 'noselect' });
-  });
 
   const box = new DiceBox(canvasContainer, { w: 500, h: 300 });
 
