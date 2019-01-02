@@ -57,7 +57,10 @@ type DiceBoxOptions = {
   onAfterRoll: (notation: RollType[], result: number[]) => void,
 };
 
-export default function DiceBox(container: HTMLElement, config: DiceBoxOptions) {
+export default function DiceBox(
+  container: HTMLElement,
+  config: DiceBoxOptions
+) {
   if (!config) throw new Error('config required');
   if (!container) throw new Error('dom container required');
 
@@ -152,12 +155,7 @@ DiceBox.prototype.setupWorld = function() {
 };
 
 DiceBox.prototype.setupListeners = function() {
-  const {
-    getNotation,
-    onDiceClick,
-    onBeforeRoll,
-    onAfterRoll,
-  } = this.config;
+  const { onDiceClick } = this.config;
 
   $listen(this.container, 'mousedown touchstart', ev => {
     this.mouseTime = new Date().getTime();
@@ -196,21 +194,13 @@ DiceBox.prototype.setupListeners = function() {
       return;
     }
 
-
     // non-neglible mouse movement, treat as a roll
     let duration = new Date().getTime() - this.mouseTime;
     if (duration > 2000) duration = 2000;
 
     const boost = Math.sqrt((2500 - duration) / 2500) * dist * 2;
 
-    this.throwDices(
-      vector,
-      boost,
-      dist,
-      getNotation,
-      onBeforeRoll,
-      onAfterRoll
-    );
+    this.throwDices(vector, boost, dist);
   });
 };
 
@@ -569,14 +559,8 @@ DiceBox.prototype.showSelector = function() {
   else this.renderer.render(this.scene, this.camera);
 };
 
-DiceBox.prototype.throwDices = function(
-  vector,
-  boost,
-  dist,
-  getNotation,
-  onBeforeRoll,
-  onAfterRoll
-) {
+DiceBox.prototype.throwDices = function(vector, boost, dist) {
+  const { getNotation, onAfterRoll, onBeforeRoll } = this.config;
   this.rolling = true;
   this.isShowingSelector = false;
 
@@ -621,11 +605,7 @@ DiceBox.prototype.throwDices = function(
   }
 };
 
-DiceBox.prototype.startThrow = function(
-  getNotation,
-  onBeforeRoll,
-  onAfterRoll
-) {
+DiceBox.prototype.startThrow = function() {
   if (this.rolling) return;
 
   const vector = {
@@ -635,5 +615,5 @@ DiceBox.prototype.startThrow = function(
   const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
   const boost = (rand() + 3) * dist;
 
-  this.throwDices(vector, boost, dist, getNotation, onBeforeRoll, onAfterRoll);
+  this.throwDices(vector, boost, dist);
 };
