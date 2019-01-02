@@ -10,7 +10,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import TimeAgo from '~/app/components/TimeAgo';
-import User from '~/app/components/User';
+import { UserEmoji } from '~/app/components/User';
 
 function Roll({ roll }: { roll: RollType }) {
   const showTotal = roll.mod !== 0 || roll.result.length > 1;
@@ -21,7 +21,7 @@ function Roll({ roll }: { roll: RollType }) {
       <DieRollInfo>{roll.original}</DieRollInfo>
       {!showTotal ? null : (
         <DieRollResult>
-          {roll.mod + roll.result.reduce((sum, v) => sum + v, 0)}
+         {' = '}{roll.mod + roll.result.reduce((sum, v) => sum + v, 0)}
         </DieRollResult>
       )}
     </DieRollContainer>
@@ -31,10 +31,16 @@ function Roll({ roll }: { roll: RollType }) {
 function UserRoll({ roll, user }: { roll: UserRollEvent, user: UserIdentity }) {
   return (
     <RollContainer>
-      <User identity={user} />
-      {roll.rolls.map((roll, i) => {
-        return <Roll key={i} roll={roll} />;
-      })}
+      <UserAvatar>
+        <UserEmoji identity={user} />
+      </UserAvatar>
+
+      <RollsContainer>
+        {roll.rolls.map((roll, i) => {
+          return <Roll key={i} roll={roll} />;
+        })}
+      </RollsContainer>
+
       <RollTime>
         <TimeAgo time={roll.time} />
       </RollTime>
@@ -59,16 +65,12 @@ export default ({
   );
 };
 
-const RollContainerHeight = 30;
-
 const Container = styled.div``;
 
 const RollContainer = styled.div`
   position: relative;
-
-  min-height: ${RollContainerHeight}px;
-  max-height: ${RollContainerHeight}px;
   display: flex;
+  align-items: flex-start;
 `;
 
 const RollTime = styled.div`
@@ -81,7 +83,10 @@ const RollTime = styled.div`
   align-self: flex-end;
 `;
 
-const DieRollContainer = styled.div``;
+const DieRollContainer = styled.div`
+  border: 1px solid red;
+  margin: 0 8px;
+`;
 
 const DieRollResult = styled.span`
   color: #000;
@@ -89,10 +94,29 @@ const DieRollResult = styled.span`
   font-size: 20px;
   margin: 0 2px 0 0;
 `;
+
 const DieRollInfo = styled.span`
   color: #999;
   font-weight: 100;
   font-size: 12px;
+`;
+
+const UserAvatar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #666;
+  border-radius: 4px;
+  font-size: 30px;
+  padding: 4px;
+  line-height: 45px;
+  width: 45px;
+`;
+
+const RollsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1;
 `;
 
 // const Rolls = styled.div`
