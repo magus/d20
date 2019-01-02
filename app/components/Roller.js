@@ -48,6 +48,8 @@ export default class Roller extends React.Component<Props, State> {
   listeners: DOMListener[];
   diceBox: any;
 
+  _playbackRolls: () => void;
+
   // state
   handleDiceNotation: (e: Event) => void;
 
@@ -62,7 +64,11 @@ export default class Roller extends React.Component<Props, State> {
     userRollEvent: UserRollEvent,
     callback: (results?: number[]) => void
   ) => void;
-  handleAfterRoll: (notation: RollType[], result: number[], userRollEvent: UserRollEvent) => void;
+  handleAfterRoll: (
+    notation: RollType[],
+    result: number[],
+    userRollEvent: UserRollEvent
+  ) => void;
 
   constructor(props: Props) {
     super(props);
@@ -74,6 +80,23 @@ export default class Roller extends React.Component<Props, State> {
 
     this.state = {
       diceNotation: DEFAULT_ROLL,
+    };
+
+    this._playbackRolls = () => {
+      const currentPlaybackRoll = this.props.playbackRoll;
+      if (!currentPlaybackRoll) return;
+
+      // setup periodic check for new playbackRolls
+      const _checkPlaybackRolls = () => {
+        window.setTimeout(() => this._playbackRolls(), 500);
+      };
+
+      // there is a playbackRoll, attempt to play it
+      // do not replay during a roll
+      if (this.diceBox.rolling) return _checkPlaybackRolls();
+
+      console.debug({ currentPlaybackRoll });
+      this.diceBox.startThrow(currentPlaybackRoll);
     };
 
     this.handleCreateNewRoll = () => {
@@ -133,7 +156,12 @@ export default class Roller extends React.Component<Props, State> {
     };
 
     this.handleBeforeRoll = (vectors, notation, userRollEvent, callback) => {
-      console.debug('onBeforeRoll', { vectors, notation, userRollEvent, callback });
+      console.debug('onBeforeRoll', {
+        vectors,
+        notation,
+        userRollEvent,
+        callback,
+      });
 
       // Force a roll result
       // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
@@ -186,24 +214,8 @@ export default class Roller extends React.Component<Props, State> {
     this.listeners.forEach(listener => listener.remove());
   }
 
-  componentDidUpdate(prevProps: Props) {
-    const currentPlaybackRoll = this.props.playbackRoll;
-    if (!currentPlaybackRoll) return;
-
-    const simulatePlaybackRoll = playbackRoll => {
-      console.debug({ playbackRoll });
-      if (playbackRoll.userId !== this.props.myUserId) this.diceBox.startThrow(playbackRoll);
-    };
-
-    if (!prevProps.playbackRoll) {
-      // first playbackRoll, just play it
-      simulatePlaybackRoll(currentPlaybackRoll);
-    } else {
-      const newPlayback = prevProps.playbackRoll.id !== currentPlaybackRoll.id;
-      if (newPlayback) {
-        simulatePlaybackRoll(currentPlaybackRoll);
-      }
-    }
+  componentDidUpdate() {
+    this._playbackRolls();
   }
 
   render() {

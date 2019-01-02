@@ -25,21 +25,29 @@ type Props = {
 type State = {
   rolls: RollsByUser,
   users: UserLookup,
-  allRolls: UserRollEvent[],
+  playbackRolls: UserRollEvent[],
 };
 
-const handleRoll = (roll: UserRollEvent) => (state: State) => {
+const removePlaybackRoll = () => (state: State) => {
+  const playbackRolls = state.playbackRolls.slice(1);
+  return { playbackRolls };
+};
+
+const handleRoll = (roll: UserRollEvent) => (state: State, props: Props) => {
   const rolls = { ...state.rolls };
   const { userId } = roll;
 
   if (!rolls[userId]) rolls[userId] = [];
 
-  const allRolls = [...state.allRolls, roll];
+  // Add non-user rolls
+  const playbackRolls = [...state.playbackRolls];
+  if (roll.userId !== props.socket.id) playbackRolls.push(roll);
+
   rolls[userId] = [roll, ...rolls[userId]];
 
   return {
     rolls,
-    allRolls,
+    playbackRolls,
   };
 };
 
@@ -72,15 +80,19 @@ class WithSocketInfo extends React.Component<Props, State> {
     this.state = {
       users: {},
       rolls: {},
-      allRolls: [],
+      playbackRolls: [],
     };
 
     this._handleRoll = userRollEvent => {
-      const playbackRoll = this.state.allRolls[0];
+      const playbackRoll = this.state.playbackRolls[0];
 
       // do not emit playback rolls
-      if (userRollEvent.id === (playbackRoll && playbackRoll.id)) return;
+      if (userRollEvent.id === (playbackRoll && playbackRoll.id)) {
+        this.setState(removePlaybackRoll());
+        return;
+      }
 
+      // emit new userRollEvent
       this.props.socket.emit(ROLL, userRollEvent);
     };
   }
@@ -93,11 +105,17 @@ class WithSocketInfo extends React.Component<Props, State> {
   render() {
     const userId = this.props.socket.id;
 
+    if (!userId) return <Page>Socket unavailable</Page>;
+
     return (
       <Page>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <Roller myUserId={userId} playbackRoll={this.state.allRolls[0]} onRoll={this._handleRoll} />
+        <Roller
+          myUserId={userId}
+          playbackRoll={this.state.playbackRolls[0]}
+          onRoll={this._handleRoll}
+        />
 
         <BelowRoller>
           <Result>
