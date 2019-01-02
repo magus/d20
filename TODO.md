@@ -1,7 +1,4 @@
 # TODO
-- default to `new roll` mode
-- click dice to build notation
-
 (New) (Edit/Save) (d20) (1d4+1 + 1d4+1 + 1d4+1)
 - clicking (New) enters selector mode
 
