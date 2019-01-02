@@ -25,6 +25,7 @@ type Props = {
 type State = {
   rolls: RollsByUser,
   users: UserLookup,
+  allRolls: UserRollEvent[],
 };
 
 const handleRoll = (roll: UserRollEvent) => (state: State) => {
@@ -33,10 +34,12 @@ const handleRoll = (roll: UserRollEvent) => (state: State) => {
 
   if (!rolls[userId]) rolls[userId] = [];
 
+  const allRolls = [roll, ...state.allRolls];
   rolls[userId] = [roll, ...rolls[userId]];
 
   return {
     rolls,
+    allRolls,
   };
 };
 
@@ -77,6 +80,7 @@ class WithSocketInfo extends React.Component<Props, State> {
     this.state = {
       users: {},
       rolls: {},
+      allRolls: [],
     };
 
     this._handleRoll = rolls => {
@@ -103,7 +107,7 @@ class WithSocketInfo extends React.Component<Props, State> {
       <Page>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <Roller onRoll={this._handleRoll} />
+        <Roller myUserId={userId} playbackRoll={this.state.allRolls[0]} onRoll={this._handleRoll} />
 
         <BelowRoller>
           <Result>

@@ -1,5 +1,5 @@
 // @flow
-import type { DiceTypes, RollType } from '~/app/types';
+import type { DiceTypes, RollType, UserRollEvent } from '~/app/types';
 import type { DOMListener } from '~/app/utils/dom';
 
 import React from 'react';
@@ -27,6 +27,8 @@ const DEFAULT_ROLL = 'd20';
 const setDiceNotation = (diceNotation: string) => () => ({ diceNotation });
 
 type Props = {
+  myUserId: string,
+  playbackRoll: UserRollEvent,
   onRoll: (dice: RollType[]) => void,
 };
 
@@ -166,6 +168,20 @@ export default class Roller extends React.Component<Props, State> {
 
   componentWillUnmount() {
     this.listeners.forEach(listener => listener.remove());
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    const { playbackRoll } = this.props;
+    if (!playbackRoll) return;
+    if (!prevProps.playbackRoll) {
+      // first playbackRoll, just play it
+      console.debug({ playbackRoll });
+    } else {
+      const newPlayback = prevProps.playbackRoll.id !== playbackRoll.id;
+      if (newPlayback) {
+        console.debug({ playbackRoll });
+      }
+    }
   }
 
   render() {
