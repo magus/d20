@@ -1,5 +1,5 @@
 // @flow
-import type { DiceTypes, RollType } from '~/app/types';
+import type { DiceTypes, RollType, UserRollEvent } from '~/app/types';
 
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
@@ -52,9 +52,10 @@ type DiceBoxOptions = {
   onBeforeRoll: (
     vectors: any,
     notation: RollType[],
-    callback: (results?: number[]) => void
+    userRollEvent: UserRollEvent,
+    callback: (results?: number[]) => void,
   ) => void,
-  onAfterRoll: (notation: RollType[], result: number[]) => void,
+  onAfterRoll: (notation: RollType[], result: number[], userRollEvent: UserRollEvent) => void,
 };
 
 export default function DiceBox(
@@ -200,7 +201,7 @@ DiceBox.prototype.setupListeners = function() {
 
     const boost = Math.sqrt((2500 - duration) / 2500) * dist * 2;
 
-    this.throwDices(this.config.getNotation(), vector, boost, dist);
+    this.throwDices(vector, boost, dist);
   });
 };
 
@@ -559,8 +560,8 @@ DiceBox.prototype.showSelector = function() {
   else this.renderer.render(this.scene, this.camera);
 };
 
-DiceBox.prototype.throwDices = function(notation, vector, boost, dist) {
-  const { onAfterRoll, onBeforeRoll } = this.config;
+DiceBox.prototype.throwDices = function(vector, boost, dist, userRollEvent: UserRollEvent) {
+  const { getNotation, onAfterRoll, onBeforeRoll } = this.config;
   this.rolling = true;
   this.isShowingSelector = false;
 
@@ -568,6 +569,8 @@ DiceBox.prototype.throwDices = function(notation, vector, boost, dist) {
   vector.y /= dist;
 
   const uat = this.useAdaptiveTimestep;
+
+  const notation = (userRollEvent && userRollEvent.rolls) || getNotation();
 
   const allDice = [];
   const forcedResults = [];
@@ -590,7 +593,7 @@ DiceBox.prototype.throwDices = function(notation, vector, boost, dist) {
     if (onAfterRoll) {
       this.clear();
       this.roll(vectors, overrideResults || forcedResults, result => {
-        if (onAfterRoll) onAfterRoll(notation, result);
+        if (onAfterRoll) onAfterRoll(notation, result, userRollEvent);
         this.rolling = false;
         this.useAdaptiveTimestep = uat;
       });
@@ -598,13 +601,13 @@ DiceBox.prototype.throwDices = function(notation, vector, boost, dist) {
   };
 
   if (onBeforeRoll) {
-    onBeforeRoll(vectors, notation, roll);
+    onBeforeRoll(vectors, notation, userRollEvent, roll);
   } else {
     roll();
   }
 };
 
-DiceBox.prototype.startThrow = function(notation: RollType[]) {
+DiceBox.prototype.startThrow = function(userRollEvent: UserRollEvent) {
   if (this.rolling) return;
 
   const vector = {
@@ -614,5 +617,5 @@ DiceBox.prototype.startThrow = function(notation: RollType[]) {
   const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
   const boost = (rand() + 3) * dist;
 
-  this.throwDices(notation, vector, boost, dist);
+  this.throwDices(vector, boost, dist, userRollEvent);
 };

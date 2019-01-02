@@ -10,6 +10,14 @@ import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
 import { $listen } from '~/app/utils/dom';
 
+const createGUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 const messages = defineMessages({
   throw: {
     id: 'throw',
@@ -29,7 +37,7 @@ const setDiceNotation = (diceNotation: string) => () => ({ diceNotation });
 type Props = {
   myUserId: string,
   playbackRoll: UserRollEvent,
-  onRoll: (dice: RollType[]) => void,
+  onRoll: (userRollEvent: UserRollEvent) => void,
 };
 
 type State = { diceNotation: string };
@@ -51,9 +59,10 @@ export default class Roller extends React.Component<Props, State> {
   handleBeforeRoll: (
     vectors: any,
     notation: RollType[],
+    userRollEvent: UserRollEvent,
     callback: (results?: number[]) => void
   ) => void;
-  handleAfterRoll: (notation: RollType[], result: number[]) => void;
+  handleAfterRoll: (notation: RollType[], result: number[], userRollEvent: UserRollEvent) => void;
 
   constructor(props: Props) {
     super(props);
@@ -78,7 +87,7 @@ export default class Roller extends React.Component<Props, State> {
       if (this.diceBox.rolling) return;
 
       // notation from input
-      this.diceBox.startThrow(this.getNotation());
+      this.diceBox.startThrow();
     };
 
     this.getNotation = () => {
@@ -96,8 +105,10 @@ export default class Roller extends React.Component<Props, State> {
       notationInput.value = stringNotation;
     };
 
-    this.handleAfterRoll = (notation, result) => {
-      console.debug('onAfterRoll', { notation, result });
+    this.handleAfterRoll = (notation, result, userRollEvent) => {
+      console.debug('onAfterRoll', { notation, result, userRollEvent });
+
+      if (userRollEvent) return this.props.onRoll(userRollEvent);
 
       let resultIndex = 0;
 
@@ -110,11 +121,18 @@ export default class Roller extends React.Component<Props, State> {
         });
       });
 
-      this.props.onRoll(notation);
+      const newUserRollEvent: UserRollEvent = {
+        rolls: notation,
+        userId: this.props.myUserId,
+        time: Date.now(),
+        id: createGUID(),
+      };
+
+      this.props.onRoll(newUserRollEvent);
     };
 
-    this.handleBeforeRoll = (vectors, notation, callback) => {
-      console.debug('onBeforeRoll', { vectors, notation, callback });
+    this.handleBeforeRoll = (vectors, notation, userRollEvent, callback) => {
+      console.debug('onBeforeRoll', { vectors, notation, userRollEvent, callback });
 
       // Force a roll result
       // e.g. callback([1, 1, 1, 1]) forces 4 dice results of value 1
@@ -168,15 +186,21 @@ export default class Roller extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    const { playbackRoll } = this.props;
-    if (!playbackRoll) return;
+    const currentPlaybackRoll = this.props.playbackRoll;
+    if (!currentPlaybackRoll) return;
+
+    const simulatePlaybackRoll = playbackRoll => {
+      console.debug({ playbackRoll });
+      if (playbackRoll.userId !== this.props.myUserId) this.diceBox.startThrow(playbackRoll);
+    };
+
     if (!prevProps.playbackRoll) {
       // first playbackRoll, just play it
-      console.debug({ playbackRoll });
+      simulatePlaybackRoll(currentPlaybackRoll);
     } else {
-      const newPlayback = prevProps.playbackRoll.id !== playbackRoll.id;
+      const newPlayback = prevProps.playbackRoll.id !== currentPlaybackRoll.id;
       if (newPlayback) {
-        console.debug({ playbackRoll });
+        simulatePlaybackRoll(currentPlaybackRoll);
       }
     }
   }

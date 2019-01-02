@@ -1,5 +1,5 @@
 // @flow
-import type { UserRollEvent, UserLookup, RollsByUser, RollType } from '~/app/types';
+import type { UserRollEvent, UserLookup, RollsByUser } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
@@ -63,16 +63,8 @@ const updateUsers = (activeUsers: UserLookup) => (state: State) => {
   return { users };
 };
 
-const createGUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-};
-
 class WithSocketInfo extends React.Component<Props, State> {
-  _handleRoll: (dice: RollType[]) => void;
+  _handleRoll: (userRollEvent: UserRollEvent) => void;
 
   constructor(props: Props) {
     super(props);
@@ -83,15 +75,13 @@ class WithSocketInfo extends React.Component<Props, State> {
       allRolls: [],
     };
 
-    this._handleRoll = rolls => {
-      const roll: UserRollEvent = {
-        rolls,
-        userId: this.props.socket.id,
-        time: Date.now(),
-        id: createGUID(),
-      };
+    this._handleRoll = userRollEvent => {
+      const playbackRoll = this.state.allRolls[0];
 
-      this.props.socket.emit(ROLL, roll);
+      // do not emit playback rolls
+      if (userRollEvent.id === (playbackRoll && playbackRoll.id)) return;
+
+      this.props.socket.emit(ROLL, userRollEvent);
     };
   }
 
