@@ -110,8 +110,8 @@ export default class Roller extends React.Component<Props, State> {
 
       if (userRollEvent) return this.props.onRoll(userRollEvent);
 
+      // Ensure notation contains results
       let resultIndex = 0;
-
       notation.forEach(roll => {
         if (!Array.isArray(roll.d)) return;
         if (!Array.isArray(roll.result)) roll.result = [];
@@ -121,6 +121,7 @@ export default class Roller extends React.Component<Props, State> {
         });
       });
 
+      // Build new userRollEvent for consistency
       const newUserRollEvent: UserRollEvent = {
         rolls: notation,
         userId: this.props.myUserId,

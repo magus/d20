@@ -104,15 +104,15 @@ export function readDices(dices: DiceThreeModel[]) {
 
 export function shiftDiceFaces(
   dice: DiceThreeModel,
-  actualResult: number,
-  forcedResult: number
+  forcedResult: number,
+  actualResult: number
 ) {
   const r = DICE.Range[dice.type];
 
-  if (!(actualResult >= r[0] && actualResult <= r[1])) return;
-  if (dice.type === DICE.Type.d100) forcedResult /= 10;
+  if (!(forcedResult >= r[0] && forcedResult <= r[1])) return;
+  if (dice.type === DICE.Type.d100) actualResult /= 10;
 
-  const diff = actualResult - forcedResult;
+  const diff = forcedResult - actualResult;
   const geom = dice.geometry.clone();
 
   for (let i = 0, l = geom.faces.length; i < l; ++i) {
