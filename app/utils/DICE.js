@@ -17,6 +17,17 @@ const ROLLS_SPLIT_REGEX = /\s+\+\s+/;
 const DICE_NOTATION_REGEX = /(.*?)(\d*)(d\d+)(\s*[+-]\s*\d+){0,1}(@([\d,]+)*){0,1}(.*?)$/i;
 const DICE_RESULT_REGEX = /\d+/;
 
+
+function errorParsedDieRoll(original, error): ParsedDieRollType {
+  return {
+    original,
+    error,
+    d: [],
+    result: [],
+    mod: 0,
+  };
+}
+
 const stringifyNotation = function(notation: ParsedDieRollType[]): string {
   const dict = {};
   const incDict = key => {
@@ -73,26 +84,21 @@ const parseNotation = function(notation: string): ParsedDieRollType[] {
     const parsedDiceNotation = DICE_NOTATION_REGEX.exec(roll);
 
     if (!parsedDiceNotation) {
-      parsedRolls[i] = {
-        original,
-        error: new Error('unrecognized dice notation'),
-      };
+      parsedRolls[i] = errorParsedDieRoll(original, new Error('unrecognized dice notation'));
       return;
     }
 
     // Extra garbage catch-all should be empty
     if (parsedDiceNotation[1] || parsedDiceNotation[7]) {
-      parsedRolls[i] = {
-        original,
-        error: new Error('contains superfluous characters'),
-      };
+      parsedRolls[i] = errorParsedDieRoll(original, new Error('contains superfluous characters'));
       return;
     }
 
     const type = parsedDiceNotation[3];
 
     if (!DICE[type]) {
-      parsedRolls[i] = { original, error: new Error('invalid dice type') };
+
+      parsedRolls[i] = errorParsedDieRoll(original, new Error('invalid dice type'));
       return;
     }
 

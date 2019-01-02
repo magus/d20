@@ -2,7 +2,7 @@
 import type {
   UserLookup,
   RollEvent,
-  DieRollType,
+  ParsedDieRollType,
   UserIdentity,
   RollsByUser,
 } from '~/app/types';
@@ -14,18 +14,11 @@ import _sortBy from 'lodash/sortBy';
 import TimeAgo from '~/app/components/TimeAgo';
 import User from '~/app/components/User';
 
-function DieRoll({ dieRoll }: { dieRoll: DieRollType }) {
-  const { mod } = dieRoll;
-  let modStr = '';
-  if (mod !== 0) {
-    const sign = mod > 0 ? '+' : '-';
-    modStr = `${sign}${mod}`;
-  }
-
+function Dice({ dice }: { dice: ParsedDieRollType }) {
   return (
     <DieRollContainer>
-      <DieRollResult>{`${dieRoll.result}`}</DieRollResult>
-      <DieRollInfo>{`(d${dieRoll.d}${modStr})`}</DieRollInfo>
+      <DieRollResult>{dice.result.join(' + ')}</DieRollResult>
+      <DieRollInfo>{dice.original}</DieRollInfo>
     </DieRollContainer>
   );
 }
@@ -55,8 +48,8 @@ function UserRolls({
 function Roll({ roll }: { roll: RollEvent }) {
   return (
     <RollContainer>
-      {roll.dieRolls.map((dieRoll, i) => {
-        return <DieRoll key={i} dieRoll={dieRoll} />;
+      {roll.dice.map((dice, i) => {
+        return <Dice key={i} dice={dice} />;
       })}
       <RollTime>
         <TimeAgo time={roll.time} />

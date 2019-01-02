@@ -1,8 +1,7 @@
 // @flow
-import type { RollEvent, UserLookup, RollsByUser } from '~/app/types';
+import type { RollEvent, UserLookup, RollsByUser, ParsedDieRollType } from '~/app/types';
 
 import React from 'react';
-import { defineMessages, FormattedMessage } from 'react-intl';
 import styled from 'styled-components';
 
 import SocketContext, {
@@ -17,8 +16,6 @@ import Users from '~/app/components/Users';
 import Roller from '~/app/components/Roller';
 
 import { USERS, ROLL } from '~/server/socket/Events';
-
-import rollDie from '~/app/utils/rollDie';
 import { userFromId } from '~/app/types';
 
 type Props = {
@@ -71,15 +68,8 @@ const createGUID = () => {
   });
 };
 
-const messages = defineMessages({
-  roll: {
-    id: 'roll',
-    defaultMessage: 'Roll',
-  },
-});
-
 class WithSocketInfo extends React.Component<Props, State> {
-  _emitRoll: () => void;
+  _handleRoll: (dice: ParsedDieRollType[]) => void;
 
   constructor(props: Props) {
     super(props);
@@ -89,13 +79,14 @@ class WithSocketInfo extends React.Component<Props, State> {
       rolls: {},
     };
 
-    this._emitRoll = () => {
+    this._handleRoll = dice => {
       const roll: RollEvent = {
+        dice,
         userId: this.props.socket.id,
-        dieRolls: [rollDie(), rollDie(6)],
         time: Date.now(),
         id: createGUID(),
       };
+
       this.props.socket.emit(ROLL, roll);
     };
   }
@@ -112,16 +103,11 @@ class WithSocketInfo extends React.Component<Props, State> {
       <Page>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <Roller />
+        <Roller onRoll={this._handleRoll} />
 
         <BelowRoller>
           <Result>
             <Users users={this.state.users} />
-
-            <button onClick={this._emitRoll}>
-              <FormattedMessage {...messages.roll} />
-            </button>
-
             <Rolls rolls={this.state.rolls} users={this.state.users} />
           </Result>
         </BelowRoller>

@@ -16,12 +16,11 @@ export type DiceTypes = $Keys<typeof DICE>;
 
 export const DICE_TYPES: DiceTypes[] = Object.keys(DICE);
 
-export type DieRollType = { d: number, result: number, mod: number };
 export type ParsedDieRollType = {
   original: string,
-  d?: Array<DiceTypes>,
-  mod?: number,
-  result?: Array<number>,
+  d: Array<DiceTypes>,
+  mod: number,
+  result: Array<number>,
   error?: Error,
 };
 
@@ -29,7 +28,7 @@ export type ParsedDieRollType = {
 export type RollEvent = {
   id: string,
   userId: string,
-  dieRolls: DieRollType[],
+  dice: ParsedDieRollType[],
   time: number,
 };
 export type UserIdentity = {

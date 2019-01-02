@@ -3,18 +3,32 @@ import type { DiceTypes, ParsedDieRollType } from '~/app/types';
 import type { DOMListener } from '~/app/utils/dom';
 
 import React from 'react';
+import { defineMessages, FormattedMessage } from 'react-intl';
 import styled from 'styled-components';
 
 import DiceBox from '~/app/components/DiceBox';
 import DICE from '~/app/utils/DICE';
 import { $listen } from '~/app/utils/dom';
 
+const messages = defineMessages({
+  throw: {
+    id: 'throw',
+    defaultMessage: 'Throw',
+  },
+  create: {
+    id: 'create',
+    defaultMessage: 'Create',
+  },
+});
+
 const DEFAULT_ROLL = 'd20';
 
 // state reducers
 const setDiceNotation = (diceNotation: string) => () => ({ diceNotation });
 
-type Props = {};
+type Props = {
+  onRoll: (dice: ParsedDieRollType[]) => void,
+};
 
 type State = { diceNotation: string };
 
@@ -52,11 +66,15 @@ export default class Roller extends React.Component<Props, State> {
     };
 
     this.handleCreateNewRoll = () => {
+      if (this.diceBox.rolling) return;
+
       this.setState(setDiceNotation(DEFAULT_ROLL));
       this.diceBox.showSelector();
     };
 
     this.handleThrow = () => {
+      if (this.diceBox.rolling) return;
+
       this.diceBox.startThrow(
         this.getNotation,
         this.handleBeforeRoll,
@@ -81,6 +99,19 @@ export default class Roller extends React.Component<Props, State> {
 
     this.handleAfterRoll = (notation, result) => {
       console.debug('onAfterRoll', { notation, result });
+
+      let resultIndex = 0;
+
+      notation.forEach(roll => {
+        if (!Array.isArray(roll.d)) return;
+        if (!Array.isArray(roll.result)) roll.result = [];
+
+        roll.d.forEach((_, i) => {
+          roll.result[i] = result[resultIndex++];
+        });
+      });
+
+      this.props.onRoll(notation);
     };
 
     this.handleBeforeRoll = (vectors, notation, callback) => {
@@ -155,10 +186,10 @@ export default class Roller extends React.Component<Props, State> {
           spellCheck="false"
         />
         <button id="throw" onClick={this.handleThrow}>
-          throw
+          <FormattedMessage {...messages.throw} />
         </button>
         <button id="create" onClick={this.handleCreateNewRoll}>
-          create
+          <FormattedMessage {...messages.create} />
         </button>
       </Container>
     );
