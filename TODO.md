@@ -1,6 +1,7 @@
 # TODO
-- handle playbackRoll by forcing throw result
-- update allRolls to remove the first item
+- Show only the most recent roll by default (fixed to bottom)
+- Clicking on expand can bring up all recent rolls
+- scrollable recent rolls with fixed height
 
 (New) (Edit/Save) (d20) (1d4+1 + 1d4+1 + 1d4+1)
 - clicking (New) enters selector mode
