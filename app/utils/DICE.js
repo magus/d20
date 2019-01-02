@@ -1,5 +1,5 @@
 // @flow
-import type { ParsedDieRollType } from '~/app/types';
+import type { RollType } from '~/app/types';
 
 import { DICE, DICE_TYPES } from '~/app/types';
 
@@ -18,7 +18,7 @@ const DICE_NOTATION_REGEX = /(.*?)(\d*)(d\d+)(\s*[+-]\s*\d+){0,1}(@([\d,]+)*){0,
 const DICE_RESULT_REGEX = /\d+/;
 
 
-function errorParsedDieRoll(original, error): ParsedDieRollType {
+function errorParsedDieRoll(original, error): RollType {
   return {
     original,
     error,
@@ -28,7 +28,7 @@ function errorParsedDieRoll(original, error): ParsedDieRollType {
   };
 }
 
-const stringifyNotation = function(notation: ParsedDieRollType[]): string {
+const stringifyNotation = function(notation: RollType[]): string {
   const dict = {};
   const incDict = key => {
     if (!dict[key]) dict[key] = 0;
@@ -71,7 +71,7 @@ const stringifyNotation = function(notation: ParsedDieRollType[]): string {
 // d20 + 2d4@1,4 + d10  [d20, 1, 4, d10]
 // Errors
 // 2e8-3, 1d4+2 - 4r, ad8-3, rd10, d201, d20&7, d20-A
-const parseNotation = function(notation: string): ParsedDieRollType[] {
+const parseNotation = function(notation: string): RollType[] {
   const parsedRolls = [];
 
   if (!notation || typeof notation !== 'string') return parsedRolls;

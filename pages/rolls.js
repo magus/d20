@@ -1,5 +1,5 @@
 // @flow
-import type { RollEvent, UserLookup, RollsByUser, ParsedDieRollType } from '~/app/types';
+import type { UserRollEvent, UserLookup, RollsByUser, RollType } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
@@ -27,7 +27,7 @@ type State = {
   users: UserLookup,
 };
 
-const handleRoll = (roll: RollEvent) => (state: State) => {
+const handleRoll = (roll: UserRollEvent) => (state: State) => {
   const rolls = { ...state.rolls };
   const { userId } = roll;
 
@@ -69,7 +69,7 @@ const createGUID = () => {
 };
 
 class WithSocketInfo extends React.Component<Props, State> {
-  _handleRoll: (dice: ParsedDieRollType[]) => void;
+  _handleRoll: (dice: RollType[]) => void;
 
   constructor(props: Props) {
     super(props);
@@ -79,9 +79,9 @@ class WithSocketInfo extends React.Component<Props, State> {
       rolls: {},
     };
 
-    this._handleRoll = dice => {
-      const roll: RollEvent = {
-        dice,
+    this._handleRoll = rolls => {
+      const roll: UserRollEvent = {
+        rolls,
         userId: this.props.socket.id,
         time: Date.now(),
         id: createGUID(),

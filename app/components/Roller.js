@@ -1,5 +1,5 @@
 // @flow
-import type { DiceTypes, ParsedDieRollType } from '~/app/types';
+import type { DiceTypes, RollType } from '~/app/types';
 import type { DOMListener } from '~/app/utils/dom';
 
 import React from 'react';
@@ -27,7 +27,7 @@ const DEFAULT_ROLL = 'd20';
 const setDiceNotation = (diceNotation: string) => () => ({ diceNotation });
 
 type Props = {
-  onRoll: (dice: ParsedDieRollType[]) => void,
+  onRoll: (dice: RollType[]) => void,
 };
 
 type State = { diceNotation: string };
@@ -42,16 +42,16 @@ export default class Roller extends React.Component<Props, State> {
   handleDiceNotation: (e: Event) => void;
 
   // handlers
-  getNotation: () => ParsedDieRollType[];
+  getNotation: () => RollType[];
   handleCreateNewRoll: () => void;
   handleThrow: () => void;
   handleDiceClick: (dice: DiceTypes) => void;
   handleBeforeRoll: (
     vectors: any,
-    notation: ParsedDieRollType[],
+    notation: RollType[],
     callback: (results?: number[]) => void
   ) => void;
-  handleAfterRoll: (notation: ParsedDieRollType[], result: number[]) => void;
+  handleAfterRoll: (notation: RollType[], result: number[]) => void;
 
   constructor(props: Props) {
     super(props);

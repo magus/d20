@@ -1,8 +1,8 @@
 // @flow
 import type {
   UserLookup,
-  RollEvent,
-  ParsedDieRollType,
+  UserRollEvent,
+  RollType,
   UserIdentity,
   RollsByUser,
 } from '~/app/types';
@@ -14,11 +14,11 @@ import _sortBy from 'lodash/sortBy';
 import TimeAgo from '~/app/components/TimeAgo';
 import User from '~/app/components/User';
 
-function Dice({ dice }: { dice: ParsedDieRollType }) {
+function Roll({ roll }: { roll: RollType }) {
   return (
     <DieRollContainer>
-      <DieRollResult>{dice.result.join(' + ')}</DieRollResult>
-      <DieRollInfo>{dice.original}</DieRollInfo>
+      <DieRollResult>{roll.result.join(' + ')}</DieRollResult>
+      <DieRollInfo>{roll.original}</DieRollInfo>
     </DieRollContainer>
   );
 }
@@ -28,7 +28,7 @@ function UserRolls({
   rolls,
 }: {
   identity: UserIdentity,
-  rolls: RollEvent[],
+  rolls: UserRollEvent[],
 }) {
   if (!rolls) return null;
 
@@ -37,7 +37,7 @@ function UserRolls({
       <User identity={identity} />
       <Rolls rows={4}>
         {rolls.map(roll => (
-          <Roll key={roll.id} roll={roll} />
+          <UserRoll key={roll.id} roll={roll} />
         ))}
       </Rolls>
       <RollsMask />
@@ -45,11 +45,11 @@ function UserRolls({
   );
 }
 
-function Roll({ roll }: { roll: RollEvent }) {
+function UserRoll({ roll }: { roll: UserRollEvent }) {
   return (
     <RollContainer>
-      {roll.dice.map((dice, i) => {
-        return <Dice key={i} dice={dice} />;
+      {roll.rolls.map((roll, i) => {
+        return <Roll key={i} roll={roll} />;
       })}
       <RollTime>
         <TimeAgo time={roll.time} />

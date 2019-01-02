@@ -16,7 +16,7 @@ export type DiceTypes = $Keys<typeof DICE>;
 
 export const DICE_TYPES: DiceTypes[] = Object.keys(DICE);
 
-export type ParsedDieRollType = {
+export type RollType = {
   original: string,
   d: Array<DiceTypes>,
   mod: number,
@@ -25,10 +25,10 @@ export type ParsedDieRollType = {
 };
 
 // Socket events
-export type RollEvent = {
+export type UserRollEvent = {
   id: string,
   userId: string,
-  dice: ParsedDieRollType[],
+  rolls: RollType[],
   time: number,
 };
 export type UserIdentity = {
@@ -38,7 +38,7 @@ export type UserIdentity = {
   active: boolean,
 };
 export type UserLookup = { [userId: string]: UserIdentity | null };
-export type RollsByUser = { [userId: string]: RollEvent[] };
+export type RollsByUser = { [userId: string]: UserRollEvent[] };
 
 export const userFromId = (userId: string): UserIdentity => ({
   id: userId,

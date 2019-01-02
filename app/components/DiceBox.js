@@ -1,5 +1,5 @@
 // @flow
-import type { DiceTypes, ParsedDieRollType } from '~/app/types';
+import type { DiceTypes, RollType } from '~/app/types';
 
 import * as THREE from 'three';
 import CANNON from '~/libs/cannon.min';
@@ -47,14 +47,14 @@ const DICE_INERTIA = {
 
 type DiceBoxOptions = {
   dimensions?: { w: number, h: number },
-  getNotation: () => ParsedDieRollType[],
+  getNotation: () => RollType[],
   onDiceClick?: (dice: DiceTypes) => void,
   onBeforeRoll: (
     vectors: any,
-    notation: ParsedDieRollType[],
+    notation: RollType[],
     callback: (results?: number[]) => void
   ) => void,
-  onAfterRoll: (notation: ParsedDieRollType[], result: number[]) => void,
+  onAfterRoll: (notation: RollType[], result: number[]) => void,
 };
 
 export default function DiceBox(container: HTMLElement, config: DiceBoxOptions) {
