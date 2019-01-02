@@ -15,10 +15,17 @@ import TimeAgo from '~/app/components/TimeAgo';
 import User from '~/app/components/User';
 
 function Roll({ roll }: { roll: RollType }) {
+  const showTotal = roll.mod !== 0 || roll.result.length > 1;
+
   return (
     <DieRollContainer>
       <DieRollResult>{roll.result.join(' + ')}</DieRollResult>
       <DieRollInfo>{roll.original}</DieRollInfo>
+      {!showTotal ? null : (
+        <DieRollResult>
+          {roll.mod + roll.result.reduce((sum, v) => sum + v, 0)}
+        </DieRollResult>
+      )}
     </DieRollContainer>
   );
 }
