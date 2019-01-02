@@ -200,7 +200,7 @@ DiceBox.prototype.setupListeners = function() {
 
     const boost = Math.sqrt((2500 - duration) / 2500) * dist * 2;
 
-    this.throwDices(vector, boost, dist);
+    this.throwDices(this.config.getNotation(), vector, boost, dist);
   });
 };
 
@@ -559,8 +559,8 @@ DiceBox.prototype.showSelector = function() {
   else this.renderer.render(this.scene, this.camera);
 };
 
-DiceBox.prototype.throwDices = function(vector, boost, dist) {
-  const { getNotation, onAfterRoll, onBeforeRoll } = this.config;
+DiceBox.prototype.throwDices = function(notation, vector, boost, dist) {
+  const { onAfterRoll, onBeforeRoll } = this.config;
   this.rolling = true;
   this.isShowingSelector = false;
 
@@ -569,7 +569,6 @@ DiceBox.prototype.throwDices = function(vector, boost, dist) {
 
   const uat = this.useAdaptiveTimestep;
 
-  const notation = getNotation();
   const allDice = [];
   const forcedResults = [];
   notation.forEach(roll => {
@@ -605,7 +604,7 @@ DiceBox.prototype.throwDices = function(vector, boost, dist) {
   }
 };
 
-DiceBox.prototype.startThrow = function() {
+DiceBox.prototype.startThrow = function(notation: RollType[]) {
   if (this.rolling) return;
 
   const vector = {
@@ -615,5 +614,5 @@ DiceBox.prototype.startThrow = function() {
   const dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
   const boost = (rand() + 3) * dist;
 
-  this.throwDices(vector, boost, dist);
+  this.throwDices(notation, vector, boost, dist);
 };

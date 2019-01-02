@@ -77,7 +77,8 @@ export default class Roller extends React.Component<Props, State> {
     this.handleThrow = () => {
       if (this.diceBox.rolling) return;
 
-      this.diceBox.startThrow();
+      // notation from input
+      this.diceBox.startThrow(this.getNotation());
     };
 
     this.getNotation = () => {
