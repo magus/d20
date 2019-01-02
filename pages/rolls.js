@@ -23,6 +23,7 @@ type Props = {
 };
 
 type State = {
+  allRolls: UserRollEvent[],
   rolls: RollsByUser,
   users: UserLookup,
   playbackRolls: UserRollEvent[],
@@ -37,15 +38,19 @@ const handleRoll = (roll: UserRollEvent) => (state: State, props: Props) => {
   const rolls = { ...state.rolls };
   const { userId } = roll;
 
+  // User specific rolls
   if (!rolls[userId]) rolls[userId] = [];
+  rolls[userId] = [roll, ...rolls[userId]];
 
-  // Add non-user rolls
+  // Update allRolls for history
+  const allRolls = [...state.allRolls, roll];
+
+  // Add non-self rolls for playback
   const playbackRolls = [...state.playbackRolls];
   if (roll.userId !== props.socket.id) playbackRolls.push(roll);
 
-  rolls[userId] = [roll, ...rolls[userId]];
-
   return {
+    allRolls,
     rolls,
     playbackRolls,
   };
@@ -81,6 +86,7 @@ class WithSocketInfo extends React.Component<Props, State> {
       users: {},
       rolls: {},
       playbackRolls: [],
+      allRolls: [],
     };
 
     this._handleRoll = userRollEvent => {
@@ -120,7 +126,7 @@ class WithSocketInfo extends React.Component<Props, State> {
         <BelowRoller>
           <Result>
             <Users users={this.state.users} />
-            <Rolls rolls={this.state.rolls} users={this.state.users} />
+            <Rolls rolls={this.state.allRolls} users={this.state.users} />
           </Result>
         </BelowRoller>
       </Page>

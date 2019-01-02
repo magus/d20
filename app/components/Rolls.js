@@ -4,12 +4,10 @@ import type {
   UserRollEvent,
   RollType,
   UserIdentity,
-  RollsByUser,
 } from '~/app/types';
 
 import React from 'react';
 import styled from 'styled-components';
-import _sortBy from 'lodash/sortBy';
 
 import TimeAgo from '~/app/components/TimeAgo';
 import User from '~/app/components/User';
@@ -30,31 +28,10 @@ function Roll({ roll }: { roll: RollType }) {
   );
 }
 
-function UserRolls({
-  identity,
-  rolls,
-}: {
-  identity: UserIdentity,
-  rolls: UserRollEvent[],
-}) {
-  if (!rolls) return null;
-
-  return (
-    <UserRollContainer>
-      <User identity={identity} />
-      <Rolls rows={4}>
-        {rolls.map(roll => (
-          <UserRoll key={roll.id} roll={roll} />
-        ))}
-      </Rolls>
-      <RollsMask />
-    </UserRollContainer>
-  );
-}
-
-function UserRoll({ roll }: { roll: UserRollEvent }) {
+function UserRoll({ roll, user }: { roll: UserRollEvent, user: UserIdentity }) {
   return (
     <RollContainer>
+      <User identity={user} />
       {roll.rolls.map((roll, i) => {
         return <Roll key={i} roll={roll} />;
       })}
@@ -68,25 +45,15 @@ export default ({
   rolls,
   users,
 }: {
-  rolls: RollsByUser,
+  rolls: UserRollEvent[],
   users: UserLookup,
 }) => {
-  const userIds = _sortBy(Object.keys(users), userId => !users[userId].active);
-  const userIdsByLastActive = _sortBy(
-    userIds,
-    userId => -1 * users[userId].lastActive
-  );
-
   return (
     <Container>
-      {userIdsByLastActive.map(userId => {
-        return (
-          <UserRolls
-            key={userId}
-            identity={users[userId]}
-            rolls={rolls[userId]}
-          />
-        );
+      {rolls.map(roll => {
+        const user = users[roll.userId];
+        if (!user) return null;
+        return <UserRoll key={roll.id} roll={roll} user={user} />;
       })}
     </Container>
   );
@@ -95,17 +62,6 @@ export default ({
 const RollContainerHeight = 30;
 
 const Container = styled.div``;
-
-const Rolls = styled.div`
-  margin: 0 0 8px 0;
-  max-height: calc(${RollContainerHeight}px * ${props => props.rows || 2});
-  padding: 0 0 ${RollContainerHeight}px 0;
-  overflow: scroll;
-  -webkit-overflow-scrolling: touch;
-
-  display: flex;
-  flex-direction: column;
-`;
 
 const RollContainer = styled.div`
   position: relative;
@@ -139,18 +95,40 @@ const DieRollInfo = styled.span`
   font-size: 12px;
 `;
 
-const UserRollContainer = styled.div`
-  position: relative;
-  border-top: 1px solid #eaeaea;
-  padding: 8px 0 0 0;
-  margin: 16px 0 0 0;
-`;
+// const Rolls = styled.div`
+//   margin: 0 0 8px 0;
+//   max-height: calc(${RollContainerHeight}px * ${props => props.rows || 2});
+//   padding: 0 0 ${RollContainerHeight}px 0;
+//   overflow: scroll;
+//   -webkit-overflow-scrolling: touch;
 
-const RollsMask = styled.div`
-  background: linear-gradient(rgba(255, 255, 255, 0), white 40%);
-  height: ${RollContainerHeight}px;
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-`;
+//   display: flex;
+//   flex-direction: column;
+// `;
+
+// const UserRollContainer = styled.div`
+//   position: relative;
+//   border-top: 1px solid #eaeaea;
+//   padding: 8px 0 0 0;
+//   margin: 16px 0 0 0;
+// `;
+
+// const RollsMask = styled.div`
+//   background: linear-gradient(rgba(255, 255, 255, 0), white 40%);
+//   height: ${RollContainerHeight}px;
+//   width: 100%;
+//   position: absolute;
+//   bottom: 0;
+//   left: 0;
+// `;
+
+// e.g.
+// <UserRollContainer>
+//   <User identity={identity} />
+//   <Rolls rows={4}>
+//     {rolls.map(roll => (
+//       <UserRoll key={roll.id} roll={roll} />
+//     ))}
+//   </Rolls>
+//   <RollsMask />
+// </UserRollContainer>
