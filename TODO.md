@@ -1,4 +1,7 @@
 # TODO
+- handle playbackRoll by forcing throw result
+- update allRolls to remove the first item
+
 (New) (Edit/Save) (d20) (1d4+1 + 1d4+1 + 1d4+1)
 - clicking (New) enters selector mode
 
