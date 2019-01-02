@@ -34,7 +34,7 @@ const handleRoll = (roll: UserRollEvent) => (state: State) => {
 
   if (!rolls[userId]) rolls[userId] = [];
 
-  const allRolls = [roll, ...state.allRolls];
+  const allRolls = [...state.allRolls, roll];
   rolls[userId] = [roll, ...rolls[userId]];
 
   return {
