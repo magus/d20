@@ -43,7 +43,7 @@ const handleRoll = (roll: UserRollEvent) => (state: State, props: Props) => {
   rolls[userId] = [roll, ...rolls[userId]];
 
   // Update allRolls for history
-  const allRolls = [...state.allRolls, roll];
+  const allRolls = [roll, ...state.allRolls];
 
   // Add non-self rolls for playback
   const playbackRolls = [...state.playbackRolls];
@@ -117,18 +117,19 @@ class WithSocketInfo extends React.Component<Props, State> {
       <Page>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <Roller
-          myUserId={userId}
-          playbackRoll={this.state.playbackRolls[0]}
-          onRoll={this._handleRoll}
-        />
-
-        <BelowRoller>
-          <Result>
-            <Users users={this.state.users} />
+        <PageContent>
+          <Flex>
+            <Roller
+              myUserId={userId}
+              playbackRoll={this.state.playbackRolls[0]}
+              onRoll={this._handleRoll}
+            />
+          </Flex>
+          <Users users={this.state.users} />
+          <FlexScroll>
             <Rolls rolls={this.state.allRolls} users={this.state.users} />
-          </Result>
-        </BelowRoller>
+          </FlexScroll>
+        </PageContent>
       </Page>
     );
   }
@@ -148,6 +149,20 @@ export default pageWithIntl(RollsPage);
 
 const BelowRoller = styled.div``;
 
-const Result = styled.div`
-  font-size: 16px;
+const Result = styled.div``;
+
+const PageContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`;
+
+const Flex = styled.div`
+  flex: 1;
+`;
+
+const FlexScroll = styled.div`
+  flex: 1;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
 `;
