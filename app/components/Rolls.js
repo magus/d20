@@ -44,9 +44,9 @@ function UserRoll({ roll, user }: { roll: UserRollEvent, user: UserIdentity }) {
           </RollTime>
         </UserInfo>
         <RollsContainer>
-          {roll.rolls.map((roll, i) => {
-            return <Roll key={i} roll={roll} />;
-          })}
+          {roll.rolls.map((roll, i) => (
+            <Roll key={i} roll={roll} />
+          ))}
         </RollsContainer>
       </RollContent>
     </UserRollContainer>
@@ -89,9 +89,7 @@ const RollTime = styled.div`
   font-weight: 100;
 `;
 
-const DieRollContainer = styled.div`
-  border: 1px solid red;
-`;
+const DieRollContainer = styled.div``;
 
 const DieRollResult = styled.span`
   color: #000;
@@ -126,7 +124,7 @@ const Username = styled.div`
 
 const RollsContainer = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   flex: 1;
 `;
 
@@ -150,41 +148,3 @@ const WhiteMask = styled.div`
   bottom: 0;
   left: 0;
 `;
-
-// const Rolls = styled.div`
-//   margin: 0 0 8px 0;
-//   max-height: calc(${RollContainerHeight}px * ${props => props.rows || 2});
-//   padding: 0 0 ${RollContainerHeight}px 0;
-//   overflow: scroll;
-//   -webkit-overflow-scrolling: touch;
-
-//   display: flex;
-//   flex-direction: column;
-// `;
-
-// const UserRollContainer = styled.div`
-//   position: relative;
-//   border-top: 1px solid #eaeaea;
-//   padding: 8px 0 0 0;
-//   margin: 16px 0 0 0;
-// `;
-
-// const RollsMask = styled.div`
-//   background: linear-gradient(rgba(255, 255, 255, 0), white 40%);
-//   height: ${RollContainerHeight}px;
-//   width: 100%;
-//   position: absolute;
-//   bottom: 0;
-//   left: 0;
-// `;
-
-// e.g.
-// <UserRollContainer>
-//   <User identity={identity} />
-//   <Rolls rows={4}>
-//     {rolls.map(roll => (
-//       <UserRoll key={roll.id} roll={roll} />
-//     ))}
-//   </Rolls>
-//   <RollsMask />
-// </UserRollContainer>
