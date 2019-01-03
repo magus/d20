@@ -5749,6 +5749,11 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
+three@0.73:
+  version "0.73.2"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.73.2.tgz#2a3ebac10de8a1bee65242e3a69fc4c4187c9695"
+  integrity sha1-Kj66wQ3oob7mUkLjpp/ExBh8lpU=
+
 through2@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"

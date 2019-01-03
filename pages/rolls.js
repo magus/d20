@@ -1,8 +1,7 @@
 // @flow
-import type { RollEvent, UserLookup, RollsByUser } from '~/app/types';
+import type { UserRollEvent, UserLookup, RollsByUser } from '~/app/types';
 
 import React from 'react';
-import { defineMessages, FormattedMessage } from 'react-intl';
 import styled from 'styled-components';
 
 import SocketContext, {
@@ -14,10 +13,9 @@ import ConnectedUser from '~/app/components/ConnectedUser';
 import Page from '~/app/components/Page';
 import Rolls from '~/app/components/Rolls';
 import Users from '~/app/components/Users';
+import Roller from '~/app/components/Roller';
 
 import { USERS, ROLL } from '~/server/socket/Events';
-
-import rollDie from '~/app/utils/rollDie';
 import { userFromId } from '~/app/types';
 
 type Props = {
@@ -25,20 +23,36 @@ type Props = {
 };
 
 type State = {
+  allRolls: UserRollEvent[],
   rolls: RollsByUser,
   users: UserLookup,
+  playbackRolls: UserRollEvent[],
 };
 
-const handleRoll = (roll: RollEvent) => (state: State) => {
+const removePlaybackRoll = () => (state: State) => {
+  const playbackRolls = state.playbackRolls.slice(1);
+  return { playbackRolls };
+};
+
+const handleRoll = (roll: UserRollEvent) => (state: State, props: Props) => {
   const rolls = { ...state.rolls };
   const { userId } = roll;
 
+  // User specific rolls
   if (!rolls[userId]) rolls[userId] = [];
-
   rolls[userId] = [roll, ...rolls[userId]];
 
+  // Update allRolls for history
+  const allRolls = [roll, ...state.allRolls];
+
+  // Add non-self rolls for playback
+  const playbackRolls = [...state.playbackRolls];
+  if (roll.userId !== props.socket.id) playbackRolls.push(roll);
+
   return {
+    allRolls,
     rolls,
+    playbackRolls,
   };
 };
 
@@ -62,23 +76,8 @@ const updateUsers = (activeUsers: UserLookup) => (state: State) => {
   return { users };
 };
 
-const createGUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-};
-
-const messages = defineMessages({
-  roll: {
-    id: 'roll',
-    defaultMessage: 'Roll',
-  },
-});
-
 class WithSocketInfo extends React.Component<Props, State> {
-  _emitRoll: () => void;
+  _handleRoll: (userRollEvent: UserRollEvent) => void;
 
   constructor(props: Props) {
     super(props);
@@ -86,16 +85,21 @@ class WithSocketInfo extends React.Component<Props, State> {
     this.state = {
       users: {},
       rolls: {},
+      playbackRolls: [],
+      allRolls: [],
     };
 
-    this._emitRoll = () => {
-      const roll: RollEvent = {
-        userId: this.props.socket.id,
-        dieRolls: [rollDie()],
-        time: Date.now(),
-        id: createGUID(),
-      };
-      this.props.socket.emit(ROLL, roll);
+    this._handleRoll = userRollEvent => {
+      const playbackRoll = this.state.playbackRolls[0];
+
+      // do not emit playback rolls
+      if (userRollEvent.id === (playbackRoll && playbackRoll.id)) {
+        this.setState(removePlaybackRoll());
+        return;
+      }
+
+      // emit new userRollEvent
+      this.props.socket.emit(ROLL, userRollEvent);
     };
   }
 
@@ -107,19 +111,25 @@ class WithSocketInfo extends React.Component<Props, State> {
   render() {
     const userId = this.props.socket.id;
 
+    if (!userId) return <Page>Socket unavailable</Page>;
+
     return (
       <Page>
-        <Header>d20</Header>
         <ConnectedUser user={this.state.users[userId] || userFromId(userId)} />
 
-        <Result>
+        <PageContent>
+          <Flex>
+            <Roller
+              myUserId={userId}
+              playbackRoll={this.state.playbackRolls[0]}
+              onRoll={this._handleRoll}
+            />
+          </Flex>
           <Users users={this.state.users} />
-
-          <button onClick={this._emitRoll}>
-            <FormattedMessage {...messages.roll} />
-          </button>
-          <Rolls rolls={this.state.rolls} users={this.state.users} />
-        </Result>
+          <FlexScroll>
+            <Rolls rolls={this.state.allRolls} users={this.state.users} />
+          </FlexScroll>
+        </PageContent>
       </Page>
     );
   }
@@ -137,13 +147,19 @@ function RollsPage() {
 
 export default pageWithIntl(RollsPage);
 
-const Header = styled.h1`
-  text-align: center;
-  font-size: 24px;
-  font-weight: 400;
-  margin-bottom: 10px;
+
+const PageContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 `;
 
-const Result = styled.div`
-  font-size: 16px;
+const Flex = styled.div`
+  flex: 1;
+`;
+
+const FlexScroll = styled.div`
+  flex: 1;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
 `;
