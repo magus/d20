@@ -147,9 +147,6 @@ function RollsPage() {
 
 export default pageWithIntl(RollsPage);
 
-const BelowRoller = styled.div``;
-
-const Result = styled.div``;
 
 const PageContent = styled.div`
   display: flex;

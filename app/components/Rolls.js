@@ -21,7 +21,8 @@ function Roll({ roll }: { roll: RollType }) {
       <DieRollInfo>{roll.original}</DieRollInfo>
       {!showTotal ? null : (
         <DieRollResult>
-         {' = '}{roll.mod + roll.result.reduce((sum, v) => sum + v, 0)}
+          {' = '}
+          {roll.mod + roll.result.reduce((sum, v) => sum + v, 0)}
         </DieRollResult>
       )}
     </DieRollContainer>
@@ -30,21 +31,25 @@ function Roll({ roll }: { roll: RollType }) {
 
 function UserRoll({ roll, user }: { roll: UserRollEvent, user: UserIdentity }) {
   return (
-    <RollContainer>
+    <UserRollContainer>
       <UserAvatar>
         <UserEmoji identity={user} />
       </UserAvatar>
 
-      <RollsContainer>
-        {roll.rolls.map((roll, i) => {
-          return <Roll key={i} roll={roll} />;
-        })}
-      </RollsContainer>
-
-      <RollTime>
-        <TimeAgo time={roll.time} />
-      </RollTime>
-    </RollContainer>
+      <RollContent>
+        <UserInfo>
+          <Username>{user.name}</Username>
+          <RollTime>
+            <TimeAgo time={roll.time} />
+          </RollTime>
+        </UserInfo>
+        <RollsContainer>
+          {roll.rolls.map((roll, i) => {
+            return <Roll key={i} roll={roll} />;
+          })}
+        </RollsContainer>
+      </RollContent>
+    </UserRollContainer>
   );
 }
 export default ({
@@ -61,31 +66,31 @@ export default ({
         if (!user) return null;
         return <UserRoll key={roll.id} roll={roll} user={user} />;
       })}
+      <WhiteMask />
     </Container>
   );
 };
 
-const Container = styled.div``;
+const MaskHeight = 30;
 
-const RollContainer = styled.div`
+const Container = styled.div`
+  margin: 0 0 ${MaskHeight}px 0;
+`;
+
+const UserRollContainer = styled.div`
   position: relative;
   display: flex;
   align-items: flex-start;
+  margin: 0 0 16px 0;
 `;
 
 const RollTime = styled.div`
-  position: absolute;
-  bottom: 0;
-  right: 0;
-
   font-size: 10px;
   font-weight: 100;
-  align-self: flex-end;
 `;
 
 const DieRollContainer = styled.div`
   border: 1px solid red;
-  margin: 0 8px;
 `;
 
 const DieRollResult = styled.span`
@@ -107,16 +112,43 @@ const UserAvatar = styled.div`
   justify-content: center;
   border: 1px solid #666;
   border-radius: 4px;
-  font-size: 30px;
+  font-size: 26px;
   padding: 4px;
-  line-height: 45px;
-  width: 45px;
+  line-height: 30px;
+  width: 30px;
+  margin: 0 8px 0 0;
+`;
+
+const Username = styled.div`
+  font-weight: 400;
+  margin: 0 8px 0 0;
 `;
 
 const RollsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   flex: 1;
+`;
+
+const RollContent = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0 0 4px 0;
+`;
+
+const WhiteMask = styled.div`
+  background: linear-gradient(rgba(255, 255, 255, 0), white 70%);
+  height: ${MaskHeight}px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 `;
 
 // const Rolls = styled.div`
